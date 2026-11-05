@@ -1,0 +1,289 @@
+{
+  "appearance": {
+    "fonts": {
+      "moduleTitleFont": "Work Sans",
+      "talkTitleFont": "Work Sans",
+      "bodyFont": "Inter"
+    },
+    "colors": {
+      "moduleTitleColor": "#1a1a1a",
+      "talkTitleColor": "#242424",
+      "descriptionColor": "#555555",
+      "primaryColor": "#ed1c24",
+      "primaryHover": "#b30f14",
+      "accentColor": "#ff6b00",
+      "backgroundColor": "#ffffff",
+      "surfaceColor": "#f8f9fa",
+      "headerBg": "#ffffff",
+      "footerBg": "#1a1a1a",
+      "footerTextColor": "#a0a0a0"
+    },
+    "headerLogo": "/uploads/logo-expansion-esg.svg",
+    "footerLogo": "/uploads/logo-expansion-esg-footer.svg",
+    "eventTitle": "Expansión ESG Summit 2026 | Tiempos de Definición",
+    "sectionBgs": {
+      "header": "#ffffff",
+      "hero": "#0a100d",
+      "sponsors": "#ffffff",
+      "video": "#f8f9fa",
+      "agenda": "#ffffff",
+      "speakers": "#f8f9fa",
+      "broadcast": "#ffffff",
+      "faq": "#f8f9fa",
+      "footer": "#1a1a1a"
+    },
+    "customCss": ""
+  },
+  "seo": {
+    "metaTitle": "Expansión ESG Summit 2026 | Tiempos de Definición",
+    "metaDescription": "La cumbre más importante de sostenibilidad, criterios ASG, transición energética y finanzas sustentables en México y América Latina.",
+    "keywords": "expansion, esg summit, sostenibilidad, ASG, criterios ambientales, bonos verdes, mexico 2026, streaming",
+    "metaRobots": "index, follow",
+    "canonicalUrl": "https://expansion.mx/esgsummit",
+    "title": "Expansión ESG Summit 2026 | Tiempos de Definición",
+    "description": "La cumbre más importante de sostenibilidad, criterios ASG, transición energética y finanzas sustentables en México y América Latina.",
+    "robots": "index, follow",
+    "canonical": "https://expansion.mx/esgsummit",
+    "ogTitle": "Expansión ESG Summit 2026 - Tiempos de Definición",
+    "ogDescription": "Encuentro de líderes empresariales y gubernamentales debatiendo sobre economía circular y finanzas verdes.",
+    "ogImage": "/uploads/hero-cover.jpg",
+    "ogUrl": "https://expansion.mx/esgsummit",
+    "ogType": "website",
+    "twitterCard": "summary_large_image",
+    "twitterTitle": "Expansión ESG Summit 2026",
+    "twitterDescription": "Conoce la agenda y sigue la transmisión en vivo del evento ASG del año.",
+    "twitterImage": "/uploads/hero-cover.jpg"
+  },
+  "sectionOrder": ["sponsors", "agenda", "speakers", "broadcast", "video"],
+  "sponsors": {
+    "enabled": true,
+    "label": "Evento presentado por",
+    "subtitle": "",
+    "imageDesktop": "/uploads/logos-sitioesg.png",
+    "imageMobile": "/uploads/logos-sitioesg.png"
+  },
+  "header": {
+    "navigation": [
+      { "id": "nav-1", "label": "Inicio", "anchor": "#hero" },
+      { "id": "nav-2", "label": "Video", "anchor": "#video" },
+      { "id": "nav-3", "label": "Agenda", "anchor": "#agenda" },
+      { "id": "nav-4", "label": "Ponentes", "anchor": "#speakers" },
+      { "id": "nav-5", "label": "Broadcast", "anchor": "#broadcast" },
+      { "id": "nav-6", "label": "Preguntas Frecuentes", "anchor": "#faq" }
+    ],
+    "cta": {
+      "label": "Registro al Evento",
+      "url": "#agenda"
+    }
+  },
+  "hero": {
+    "badge": "6 DE AGOSTO 2026 • HOTEL PRESIDENTE INTERCONTINENTAL & STREAMING",
+    "title": "Expansión ESG Summit 2026: Tiempos de Definición",
+    "subtitle": "El encuentro empresarial y gubernamental más relevante de México enfocado en resultados medibles, economía circular, descarbonización y gobernanza corporativa transparente.",
+    "coverImage": "/uploads/cover-esg-1920x938.jpg",
+    "coverDimensions": "1920x938",
+    "hideContent": false,
+    "overlayOpacity": 70,
+    "overlayColor": "#0a100d",
+    "ctaPrimary": {
+      "label": "Ver Agenda Completa",
+      "anchor": "#agenda"
+    },
+    "ctaSecondary": {
+      "label": "Ver Transmisión en Vivo",
+      "anchor": "#broadcast"
+    },
+    "stats": [
+      { "value": "35+", "label": "Líderes y Panelistas" },
+      { "value": "6 Ejes", "label": "Estrategias de Impacto ESG" },
+      { "value": "+15K", "label": "Audiencia Conectada" }
+    ]
+  },
+  "videoSection": {
+    "title": "Tráiler Oficial del ESG Summit",
+    "subtitle": "Descubre las conversaciones clave sobre sostenibilidad, mitigación de riesgos climáticos e inversión responsable.",
+    "youtubeId": "L_LUpnjgPso",
+    "posterImage": "/uploads/video-poster.jpg"
+  },
+  "agenda": {
+    "title": "Agenda del Evento",
+    "subtitle": "Conferencias magistrales, paneles de alto nivel y diálogos estratégicos con los tomadores de decisiones.",
+    "categories": [
+      "Todas",
+      "Economía Circular",
+      "Transparencia Empresarial",
+      "Restauración de Ecosistemas",
+      "Movilidad Sostenible",
+      "IA & Finanzas Verdes"
+    ],
+    "items": [
+      {
+        "id": "agenda-esg-1",
+        "image": "/uploads/agenda-esg-1.jpg",
+        "time": "08:30 - 09:30 hrs",
+        "day": "Jornada Completa",
+        "category": "Economía Circular",
+        "title": "Transformación del Territorio y Gestión de Pasivos Ambientales",
+        "description": "Análisis del aprovechamiento del sargazo y residuos industriales para convertirlos en insumos de alto valor bajo esquemas de bioeconomía.",
+        "speakers": ["José Luis Samaniego Leyva (Subsecretario SEMARNAT)", "Directores de Sostenibilidad"],
+        "moderators": ["Editor de Sostenibilidad, Expansión"]
+      },
+      {
+        "id": "agenda-esg-2",
+        "image": "/uploads/agenda-esg-2.jpg",
+        "time": "09:45 - 11:00 hrs",
+        "day": "Jornada Completa",
+        "category": "Transparencia Empresarial",
+        "title": "Del Discurso al Escrutinio Permanente: Rendición de Cuentas ESG",
+        "description": "Cómo las emisoras y multinacionales están respondiendo a las exigencias de inversionistas globales con métricas verificables y auditoría rigurosa.",
+        "speakers": ["Nalleli Barajas (Directora de Sostenibilidad, BMV)", "Mauricio Bonilla (Director, Pacto Global México)"],
+        "moderators": ["Jefa de Redacción de Negocios"]
+      },
+      {
+        "id": "agenda-esg-3",
+        "image": "/uploads/agenda-esg-3.jpg",
+        "time": "11:15 - 12:30 hrs",
+        "day": "Jornada Completa",
+        "category": "Restauración de Ecosistemas",
+        "title": "El Rol del Sector Privado en la Regeneración de Ecosistemas y Biodiversidad",
+        "description": "Iniciativas empresariales para preservar cuencas hídricas, bosques y fauna, superando el estándar de compensación hacia el impacto positivo neto.",
+        "speakers": ["Directora Corporativa L'Oréal", "VP Asuntos Públicos Mars Pet Nutrition"],
+        "moderators": ["Periodista Senior de Investigación"]
+      },
+      {
+        "id": "agenda-esg-4",
+        "image": "/uploads/agenda-esg-4.jpg",
+        "time": "12:45 - 14:00 hrs",
+        "day": "Jornada Completa",
+        "category": "IA & Finanzas Verdes",
+        "title": "Inteligencia Artificial para el Cumplimiento Climático y Bonos Sostenibles",
+        "description": "Uso de sensores satelitales y algoritmos de optimización para monitoreo de huella de carbono y estructuración de créditos vinculados a ESG.",
+        "speakers": ["Head of Sustainability Ericsson Latam", "Lead de Estrategia Sostenible DiDi"],
+        "moderators": ["Director Editorial de Tecnología"]
+      }
+    ]
+  },
+  "speakers": {
+    "title": "Líderes y Ponentes del Summit",
+    "subtitle": "Voces determinantes del gobierno, la iniciativa privada y organismos multilaterales.",
+    "items": [
+      {
+        "id": "spk-esg-1",
+        "name": "José Luis Samaniego Leyva",
+        "role": "Subsecretario de Desarrollo Sostenible y Economía Circular",
+        "company": "SEMARNAT México",
+        "image": "/uploads/spk-samaniego.jpg",
+        "bio": "Economista líder en políticas públicas de desarrollo sustentable, ex director de la División de Desarrollo Sostenible de la CEPAL.",
+        "badge": "Keynote Speaker"
+      },
+      {
+        "id": "spk-esg-2",
+        "name": "Nalleli Barajas",
+        "role": "Directora de Sostenibilidad",
+        "company": "Bolsa Mexicana de Valores (BMV)",
+        "image": "/uploads/spk-barajas.jpg",
+        "bio": "Especialista en mercados de capitales sostenibles, taxonomía verde y emisión de instrumentos financieros ASG.",
+        "badge": "Panelista Magistral"
+      },
+      {
+        "id": "spk-esg-3",
+        "name": "Mauricio Bonilla",
+        "role": "Director Ejecutivo",
+        "company": "Pacto Global México (ONU)",
+        "image": "/uploads/spk-bonilla.jpg",
+        "bio": "Impulsor de los Diez Principios del Pacto Mundial y la adopción de los Objetivos de Desarrollo Sostenible en el sector empresarial.",
+        "badge": "Panelista"
+      },
+      {
+        "id": "spk-esg-4",
+        "name": "Araceli Campos",
+        "role": "VP de Sostenibilidad y Cadena de Valor",
+        "company": "Consorcio Empresarial ESG",
+        "image": "/uploads/speaker-3.jpg",
+        "bio": "Pionera en descarbonización de cadenas de suministro y empaques circulares para consumo masivo en América Latina.",
+        "badge": "Keynote Speaker"
+      }
+    ]
+  },
+  "broadcast": {
+    "title": "Broadcast",
+    "subtitle": "",
+    "bgType": "gradient",
+    "bgGradient": "radial-gradient(ellipse at 65% 50%, #004ecc 0%, #00237d 45%, #001040 85%, #000824 100%)",
+    "bgCustomImage": "",
+    "items": [
+      {
+        "id": "bc-esg-1",
+        "image": "/uploads/1792383743425-El-negocio-de-alimentar.png",
+        "title": "El secreto de México para alimentar al mundo (y ganar más)",
+        "time": "10:10-10:50",
+        "description": "Estrategias de soberanía alimentaria, trazabilidad de cadena ganadera y valor agregado con perspectiva de sustentabilidad internacional.",
+        "speakers": "Macarena Hernández Directora General de Consejo Mexicano de la Carne",
+        "moderators": "Modera: Rosalía Lara Editora de ESG en Expansión",
+        "youtubeId": "5qap5aO4i9A"
+      },
+      {
+        "id": "bc-esg-2",
+        "image": "/uploads/1792383723893-Centros-de-Datos.png",
+        "title": "Centros de Datos: El dilema energético del futuro digital",
+        "time": "11:00-11:45",
+        "description": "La demanda creciente de energía provocada por la inteligencia artificial y los centros de datos en el norte del país.",
+        "speakers": "Ing. Carlos Mendoza, Mtra. Elena Rostova",
+        "moderators": "Modera: Redacción Expansión",
+        "youtubeId": "L_LUpnjgPso"
+      },
+      {
+        "id": "bc-esg-3",
+        "image": "/uploads/1792383712618-Me_xico-sin-el-TMEC.png",
+        "title": "México sin el T-MEC: Escenarios y resiliencia corporativa",
+        "time": "12:00-12:50",
+        "description": "Análisis prospectivo sobre comercio exterior, nearshoring y certidumbre jurídica frente a la renegociación trilateral.",
+        "speakers": "Dra. Valeria Moy, Lic. Kenneth Smith",
+        "moderators": "Modera: Mesa de Economía",
+        "youtubeId": "dQw4w9WgXcQ"
+      }
+    ]
+  },
+  "faq": {
+    "title": "Preguntas Frecuentes",
+    "subtitle": "Información indispensable para asistentes presenciales y virtuales al Expansión ESG Summit.",
+    "items": [
+      {
+        "id": "faq-1",
+        "question": "¿Cómo puedo seguir las transmisiones en vivo si no asisto de manera presencial?",
+        "answer": "La transmisión se emite de forma continua y gratuita a través de nuestra sección de [Transmisión en Vivo (Broadcast)](#broadcast) y en el [canal oficial de YouTube de Expansión](https://youtube.com) con el hashtag #ExpansiónESGSummit2026."
+      },
+      {
+        "id": "faq-2",
+        "question": "¿El acceso a las transmisiones tiene algún costo?",
+        "answer": "No, el streaming digital es 100% abierto para la comunidad empresarial y académica. Solo debes registrarte mediante el [formulario de inscripción](#agenda) para recibir recordatorios y material exclusivo de los paneles."
+      },
+      {
+        "id": "faq-3",
+        "question": "¿Estarán disponibles las grabaciones de los paneles al concluir el evento?",
+        "answer": "Sí, todas las sesiones se archivarán y estarán disponibles bajo demanda en nuestro portal y en las notas de cobertura de [Expansión Sostenibilidad](https://expansion.mx) dentro de las 24 horas posteriores."
+      },
+      {
+        "id": "faq-4",
+        "question": "¿Cómo puedo interactuar o enviar preguntas a los ponentes?",
+        "answer": "Puedes participar a través del chat de la transmisión en vivo o mediante redes sociales etiquetando a [@expansionmx](https://x.com/expansionmx) usando la etiqueta #ExpansiónESGSummit2026."
+      }
+    ]
+  },
+  "footer": {
+    "description": "Expansión Summit es la plataforma de conferencias de negocios, tecnología y sostenibilidad más influyente de México, respaldada por más de 50 años de periodismo de excelencia.",
+    "copyright": "© 2026 Expansión. Todos los derechos reservados. Grupo Expansión.",
+    "socials": [
+      { "name": "YouTube", "url": "https://youtube.com/@expansionmx" },
+      { "name": "LinkedIn", "url": "https://linkedin.com/company/expansionmx" },
+      { "name": "X (@expansionmx)", "url": "https://x.com/expansionmx" },
+      { "name": "Instagram", "url": "https://instagram.com/expansionmx" }
+    ],
+    "contactEmail": "eventos@expansion.mx",
+    "quickLinks": [
+      { "label": "Expansión Revista", "url": "https://expansion.mx" },
+      { "label": "Aviso de Privacidad", "url": "https://expansion.mx" },
+      { "label": "Términos y Condiciones", "url": "https://expansion.mx" }
+    ]
+  }
+}

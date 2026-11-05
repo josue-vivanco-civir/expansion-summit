@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="seo-meta-title">Expansión Summit 2026</title>
+  <meta name="description" id="seo-meta-desc" content="Landing Page Oficial del Summit Internacional de Innovación y Tecnología">
+  <meta name="keywords" id="seo-meta-keywords" content="summit, innovacion, tecnologia, liderazgo, IA, ESG">
+  <meta name="robots" id="seo-meta-robots" content="index, follow">
+  <link rel="canonical" id="seo-meta-canonical" href="https://expansion.mx/esgsummit">
+
+  <!-- Open Graph / Facebook / LinkedIn / WhatsApp -->
+  <meta property="og:type" id="seo-og-type" content="website">
+  <meta property="og:title" id="seo-og-title" content="Expansión Summit 2026">
+  <meta property="og:description" id="seo-og-desc" content="Landing Page Oficial del Summit Internacional de Innovación y Tecnología">
+  <meta property="og:image" id="seo-og-img" content="/uploads/hero-cover.jpg">
+  <meta property="og:url" id="seo-og-url" content="https://expansion.mx/esgsummit">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" id="seo-tw-card" content="summary_large_image">
+  <meta name="twitter:title" id="seo-tw-title" content="Expansión Summit 2026">
+  <meta name="twitter:description" id="seo-tw-desc" content="Landing Page Oficial del Summit Internacional de Innovación y Tecnología">
+  <meta name="twitter:image" id="seo-tw-img" content="/uploads/hero-cover.jpg">
+  
+  <!-- Default Google Fonts preload -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link id="summit-dynamic-fonts" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="/css/landing.css">
+  <!-- Custom CSS Override Tag -->
+  <style id="summit-user-custom-css"></style>
+</head>
+<body>
+
+  <!-- ==========================================
+       1. HEADER (Logo y Navegación con Anclas)
+       ========================================== -->
+  <header class="site-header" id="main-header">
+    <div class="container header-container">
+      <a href="#hero" class="header-logo-link" id="header-logo-container" aria-label="Inicio">
+        <img src="/uploads/logo-summit-header.svg" alt="Summit Logo" class="header-logo-img">
+      </a>
+
+      <nav class="header-nav" id="header-nav" aria-label="Navegación Principal">
+        <ul class="header-nav-list" id="header-nav-list">
+          <!-- Dynamic navigation items from CMS -->
+          <li><a href="#hero" class="header-nav-link">Inicio</a></li>
+          <li><a href="#video" class="header-nav-link">Video</a></li>
+          <li><a href="#agenda" class="header-nav-link">Agenda</a></li>
+          <li><a href="#speakers" class="header-nav-link">Ponentes</a></li>
+          <li><a href="#broadcast" class="header-nav-link">Transmisión</a></li>
+          <li><a href="#faq" class="header-nav-link">Preguntas</a></li>
+        </ul>
+      </nav>
+
+      <div class="header-actions">
+        <a href="/admin" class="cms-admin-pill" title="Gestionar contenido en el CMS" target="_blank">
+          <span>⚙️ Panel CMS</span>
+        </a>
+        <a href="#agenda" class="btn btn-primary btn-sm" id="header-cta">Registro Gratis</a>
+        <button class="mobile-menu-btn" id="mobile-menu-toggle" aria-label="Abrir menú">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================
+       2. HERO (Portada optimizada 1920x938)
+       ========================================== -->
+  <section class="hero-section" id="hero">
+    <div class="hero-bg-wrapper">
+      <picture id="hero-cover-picture">
+        <source id="hero-cover-source-mobile" media="(max-width: 768px)" srcset="/uploads/hero-cover.jpg">
+        <img src="/uploads/hero-cover.jpg" alt="Portada de la cumbre" class="hero-cover-img" id="hero-cover-img" width="1920" height="938" fetchpriority="high">
+      </picture>
+      <div class="hero-overlay"></div>
+    </div>
+
+    <div class="container">
+      <div class="hero-content">
+        <div class="hero-badge" id="hero-badge">
+          <span class="pulse-dot"></span> 15 AL 17 DE OCTUBRE 2026 • HYBRID SUMMIT
+        </div>
+        <h1 class="hero-title" id="hero-title">
+          La Cumbre Global de Inteligencia Artificial y Futuro Digital
+        </h1>
+        <p class="hero-subtitle" id="hero-subtitle">
+          Más de 40 líderes internacionales reunidos para debatir sobre agentes autónomos, computación cuántica, ciberseguridad y sostenibilidad tecnológica.
+        </p>
+        <div class="hero-buttons">
+          <a href="#agenda" class="btn btn-primary" id="hero-cta-primary">Explorar Agenda</a>
+          <a href="#broadcast" class="btn btn-secondary" id="hero-cta-secondary">▶ Ver Transmisión en Vivo</a>
+        </div>
+        <div class="hero-stats" id="hero-stats-container">
+          <!-- Dynamic stats -->
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       CONTENEDOR DE SECCIONES DINÁMICAMENTE REORDENABLES
+       ========================================== -->
+  <div id="summit-movable-sections">
+
+    <!-- ==========================================
+         PATROCINADORES / SPONSORS (Logos Desktop & Mobile)
+         ========================================== -->
+    <section class="section sponsors" id="sponsors">
+      <div class="container">
+        <div class="sponsors-label" id="sponsors-label">PATROCINADORES Y ALIADOS</div>
+        <p class="sponsors-subtitle" id="sponsors-subtitle"></p>
+        <div class="sponsors-img-wrapper">
+          <picture id="sponsors-picture">
+            <source id="sponsors-source-mobile" media="(max-width: 768px)" srcset="/uploads/logos-sitioesg.png">
+            <img src="/uploads/logos-sitioesg.png" alt="Logotipos Patrocinadores" class="sponsors-img" id="sponsors-img" loading="lazy">
+          </picture>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         VIDEO PROMO / TEASER
+         ========================================== -->
+    <section class="section-padding section-alt" id="video">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">En vivo</span>
+          <h2 class="section-title" id="video-section-title">Conoce la Experiencia Summit</h2>
+          <p class="section-subtitle" id="video-section-subtitle">
+            Un vistazo exclusivo a las conferencias magistrales, networking y casos de éxito de vanguardia.
+          </p>
+        </div>
+
+        <div class="video-card-container">
+          <iframe 
+            id="main-video-iframe"
+            class="video-iframe" 
+            src="https://www.youtube-nocookie.com/embed/L_LUpnjgPso?rel=0" 
+            title="Video Promocional del Evento" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            allowfullscreen>
+          </iframe>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         AGENDA / TIMELINE (Expansión Zigzag Architecture)
+         ========================================== -->
+    <section class="section-padding" id="agenda">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">Cronograma</span>
+          <h2 class="section-title" id="agenda-title">Agenda y Cronograma Oficial</h2>
+          <p class="section-subtitle" id="agenda-subtitle">
+            Planifica tu asistencia a las charlas técnicas, paneles de discusión y sesiones interactivas.
+          </p>
+        </div>
+
+        <!-- Category Filter Tabs -->
+        <div class="agenda-filters" id="agenda-filters">
+          <!-- Rendered by JS -->
+        </div>
+
+        <!-- Solo Card (Apertura / Inauguración) -->
+        <div class="timeline__solo-card" id="agenda-solo-card">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          <span>08:30 - 09:00 hrs • Registro &amp; Ceremonia de Inauguración</span>
+        </div>
+
+        <!-- Continuous Central Track & Alternating Zigzag Items -->
+        <div class="timeline_progress_wrapper" id="agenda-timeline-wrapper">
+          <div class="timeline_progress">
+            <div class="timeline_progress_fill" id="timeline-progress-bar"></div>
+          </div>
+          <div class="timeline_items_wrap" id="agenda-timeline-items">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         PONENTES / SPEAKERS (Expansión Organic Team Grid)
+         ========================================== -->
+    <section class="section-padding section-alt" id="speakers">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">Keynote &amp; Expertos</span>
+          <h2 class="section-title" id="speakers-title">Ponentes Destacados</h2>
+          <p class="section-subtitle" id="speakers-subtitle">
+            Conoce a las mentes brillantes que lideran la transformación digital en las empresas más innovadoras.
+          </p>
+        </div>
+
+        <div class="team-grid" id="speakers-grid">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         BROADCAST (Expansión Signature Circular Stage)
+         ========================================== -->
+    <section class="broadcast-section" id="broadcast">
+      <div class="container">
+        <h2 class="broadcast-heading" id="broadcast-title">Broadcast</h2>
+        
+        <div class="broadcast-stage-grid">
+          <!-- Columna 1: Información de la ponencia activa -->
+          <div class="broadcast-info-col">
+            <h3 class="broadcast-talk-title" id="broadcast-active-title">El negocio de alimentar</h3>
+            <div class="broadcast-talk-time" id="broadcast-active-time">10:10 - 10:50 hrs</div>
+            <div class="broadcast-talk-speaker" id="broadcast-active-speaker"><strong>Macarena Hernández</strong> • Directora General de Danone México</div>
+            <div class="broadcast-talk-moderator" id="broadcast-active-moderator"></div>
+            <button class="broadcast-play-btn" id="broadcast-play-trigger" title="Reproducir Transmisión" aria-label="Reproducir Transmisión">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                <polygon points="10,8 16,12 10,16"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Columna 2: Círculo central del Ponente Activo y Controles de Flechas -->
+          <div class="broadcast-center-col">
+            <div class="broadcast-avatar-wrap">
+              <img src="/uploads/1792383743425-El-negocio-de-alimentar.png" alt="Ponente Activo" class="broadcast-avatar-img" id="broadcast-active-avatar">
+            </div>
+            <div class="broadcast-arrows-wrap">
+              <button class="broadcast-nav-arrow" id="broadcast-prev-btn" aria-label="Ponencia anterior"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z"/></svg></button>
+              <button class="broadcast-nav-arrow" id="broadcast-next-btn" aria-label="Ponencia siguiente"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z"/></svg></button>
+            </div>
+          </div>
+
+          <!-- Columna 3: Bandeja de Próximas Ponencias (Círculos Abajo a la Derecha) -->
+          <div class="broadcast-preview-col">
+            <div class="broadcast-preview-tray" id="broadcast-preview-tray">
+              <!-- Rendered by JS: upcoming sessions preview circles -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /#summit-movable-sections -->
+
+  <!-- ==========================================
+       7. PREGUNTAS FRECUENTES (FAQ)
+       ========================================== -->
+  <section class="section-padding section-alt" id="faq">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Dudas y Respuestas</span>
+        <h2 class="section-title" id="faq-title">Preguntas Frecuentes</h2>
+        <p class="section-subtitle" id="faq-subtitle">
+          Resolvemos todas tus dudas sobre registro, acceso a las transmisiones y certificados.
+        </p>
+      </div>
+
+      <div class="faq-container" id="faq-accordion-container">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       8. FOOTER
+       ========================================== -->
+  <footer class="site-footer" id="footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <img src="/uploads/logo-summit-footer.svg" alt="Summit Footer Logo" class="footer-logo-img" id="footer-logo">
+          <p class="footer-desc" id="footer-description">
+            El encuentro internacional más relevante de ciencia, tecnología y negocios digitales para la comunidad global.
+          </p>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Enlaces Rápidos</h4>
+          <ul class="footer-links-list" id="footer-quicklinks">
+            <li><a href="#hero" class="footer-link">Inicio</a></li>
+            <li><a href="#agenda" class="footer-link">Agenda</a></li>
+            <li><a href="#broadcast" class="footer-link">Transmisión</a></li>
+            <li><a href="#faq" class="footer-link">Preguntas Frecuentes</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Síguenos</h4>
+          <div class="footer-socials" id="footer-socials">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p id="footer-copyright">©Expansión Summit 2026 . Todos los derechos reservados.</p>
+        <p>Desarrollado por CIVIR</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==========================================
+       MODAL: YOUTUBE LIVE PLAYER (Nativo <dialog>)
+       ========================================== -->
+  <dialog class="video-modal" id="live-stream-modal" aria-labelledby="modal-stream-title">
+    <div class="modal-header">
+      <div class="modal-title">
+        <span style="color:#ef4444;">🔴</span>
+        <span id="modal-stream-title">Transmisión en Vivo</span>
+      </div>
+      <button class="modal-close-btn" id="modal-close-btn" aria-label="Cerrar modal">&times;</button>
+    </div>
+    <div class="modal-body">
+      <iframe 
+        id="modal-stream-iframe" 
+        class="modal-iframe" 
+        src="" 
+        title="YouTube Live Stream Player" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen>
+      </iframe>
+    </div>
+  </dialog>
+
+  <!-- ==========================================
+       MODAL: BIOGRAFÍA PONENTE (Expansión Slide-in Drawer)
+       ========================================== -->
+  <div class="modal-team" id="speaker-drawer-modal" role="dialog" aria-modal="true">
+    <div class="modal-overlay" id="speaker-drawer-overlay"></div>
+    <div class="modal-panel">
+      <button class="modal__close" id="speaker-drawer-close" aria-label="Cerrar modal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+      <div class="team-modal">
+        <div class="team__wide-img">
+          <img id="speaker-drawer-avatar" src="" alt="Foto Ponente">
+        </div>
+        <div class="team-modal__header">
+          <h2 class="modal-team-name" id="speaker-drawer-name">Nombre Ponente</h2>
+          <div class="modal-team-role" id="speaker-drawer-role">Cargo • Empresa</div>
+        </div>
+        <div class="team__bio" id="speaker-drawer-bio">
+          Biografía detallada del ponente...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Client Script -->
+  <script src="/js/landing.js"></script>
+</body>
+</html>

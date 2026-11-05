@@ -1,0 +1,359 @@
+{
+  "appearance": {
+    "fonts": {
+      "moduleTitleFont": "Inter",
+      "talkTitleFont": "Inter",
+      "bodyFont": "Inter"
+    },
+    "colors": {
+      "moduleTitleColor": "#1d1d1b",
+      "talkTitleColor": "#067999",
+      "descriptionColor": "#1d1d1b",
+      "primaryColor": "#fcea10",
+      "primaryHover": "#d6c60d",
+      "accentColor": "#cb9943",
+      "backgroundColor": "#fdfae7",
+      "headerBg": "#1d1d1b",
+      "footerBg": "#1d1d1b",
+      "footerTextColor": "#94a3b8"
+    },
+    "headerLogo": "/uploads/1792104750734-Recurso_2north-face.svg",
+    "footerLogo": "/uploads/1792104754617-Recurso_2north-face.svg",
+    "eventTitle": "Global Summit Norte 2026",
+    "sectionBgs": {
+      "header": "#1d1d1b",
+      "hero": "#101828",
+      "video": "#fdfae7",
+      "agenda": "#fdfae7",
+      "speakers": "#10b7c7",
+      "broadcast": "#fdfae7",
+      "faq": "#f8f6e2",
+      "footer": "#1d1d1b",
+      "sponsors": "#fdfae7"
+    },
+    "customCss": "section#hero {\n    display: contents;\n}\n\n.header-nav-link {\ncolor: var(--color-white)\n}"
+  },
+  "seo": {
+    "metaTitle": "Summit Innovation 2026 | Cumbre Global de Tecnología",
+    "metaDescription": "La cumbre internacional más relevante de inteligencia artificial, transformación digital y sostenibilidad tecnológica. Regístrate gratis y sigue las transmisiones en vivo.",
+    "keywords": "summit, tecnologia, inteligencia artificial, innovacion, expansion, conferencias 2026, streaming en vivo, broadcast",
+    "metaRobots": "index, follow",
+    "canonicalUrl": "https://expansion.mx/esgsummit",
+    "ogTitle": "Summit Innovation 2026 - Conectando el Futuro",
+    "ogDescription": "Más de 40 líderes internacionales debatiendo sobre agentes autónomos, computación cuántica y ciberseguridad.",
+    "ogImage": "/uploads/1792104657106-hero-optimized.jpg",
+    "ogUrl": "https://expansion.mx/esgsummit",
+    "ogType": "website",
+    "twitterCard": "summary_large_image",
+    "twitterTitle": "Summit Innovation 2026 - Conectando el Futuro",
+    "twitterDescription": "Más de 40 líderes internacionales debatiendo sobre agentes autónomos, computación cuántica y ciberseguridad.",
+    "twitterImage": "/uploads/1792104657106-hero-optimized.jpg"
+  },
+  "sectionOrder": [
+    "sponsors",
+    "video",
+    "speakers",
+    "agenda",
+    "broadcast"
+  ],
+  "sponsors": {
+    "enabled": true,
+    "label": "Evento presentado por",
+    "subtitle": "",
+    "imageDesktop": "/uploads/logos-sitioesg.png",
+    "imageMobile": "/uploads/logos-sitioesg.png"
+  },
+  "header": {
+    "navigation": [
+      {
+        "id": "nav-1",
+        "label": "Inicio",
+        "anchor": "#hero"
+      },
+      {
+        "id": "nav-2",
+        "label": "Video",
+        "anchor": "#video"
+      },
+      {
+        "id": "nav-3",
+        "label": "Agenda",
+        "anchor": "#agenda"
+      },
+      {
+        "id": "nav-4",
+        "label": "Ponentes",
+        "anchor": "#speakers"
+      },
+      {
+        "id": "nav-5",
+        "label": "Transmisión",
+        "anchor": "#broadcast"
+      },
+      {
+        "id": "nav-6",
+        "label": "Preguntas",
+        "anchor": "#faq"
+      }
+    ],
+    "cta": {
+      "label": "Comprar boletos",
+      "url": "https://www.eventbrite.com.mx/e/expansion-summit-norte-2026-tickets-2003310297026?aff=oddtdtcreator"
+    }
+  },
+  "hero": {
+    "badge": "15 AL 17 DE OCTUBRE 2026 • HYBRID SUMMIT",
+    "title": "La Cumbre Global de Inteligencia Artificial y Futuro Digital",
+    "subtitle": "Más de 40 líderes internacionales reunidos para debatir sobre agentes autónomos, computación cuántica, ciberseguridad y sostenibilidad tecnológica.",
+    "coverImage": "/uploads/1792104657106-hero-optimized.jpg",
+    "coverImageMobile": "/uploads/1792104660571-banner-mobile-summit-norte.jpg",
+    "coverDimensions": "1920x938",
+    "hideContent": true,
+    "overlayOpacity": 0,
+    "overlayColor": "#000000",
+    "ctaPrimary": {
+      "label": "Explorar Agenda",
+      "anchor": "#agenda"
+    },
+    "ctaSecondary": {
+      "label": "Ver Transmisión en Vivo",
+      "anchor": "#broadcast"
+    },
+    "stats": [
+      {
+        "value": "40+",
+        "label": "Speakers Globales"
+      },
+      {
+        "value": "3 Días",
+        "label": "Conferencias & Paneles"
+      },
+      {
+        "value": "25k+",
+        "label": "Asistentes en Línea"
+      }
+    ]
+  },
+  "videoSection": {
+    "title": "Conoce la Experiencia Summit",
+    "subtitle": "Un vistazo exclusivo a las conferencias magistrales, networking y casos de éxito de vanguardia.",
+    "youtubeId": "r7MGLkyJA3E",
+    "posterImage": "/uploads/video-poster.jpg"
+  },
+  "agenda": {
+    "title": "Agenda y Cronograma Oficial",
+    "subtitle": "Planifica tu asistencia a las charlas técnicas, paneles de discusión y sesiones interactivas.",
+    "categories": [
+      "Todas",
+      "Inteligencia Artificial",
+      "Cloud & DevOps",
+      "Ciberseguridad",
+      "Sostenibilidad & Tech"
+    ],
+    "items": [
+      {
+        "id": "agenda-1",
+        "title": "Revolución de Agentes Inteligentes en Entornos Corporativos",
+        "time": "09:00 - 10:15 hrs",
+        "category": "Inteligencia Artificial",
+        "description": "Cómo los agentes multimodales autónomos están redefiniendo el desarrollo de software y la toma de decisiones estratégicas.",
+        "speakers": [
+          "Dra. Sofia Navarro (Directora de IA)",
+          "Ing. Mateo Valenzuela (Lead Researcher)"
+        ],
+        "moderators": [
+          "Lic. Andrea Gómez (Editora Tech Latam)"
+        ],
+        "image": "/uploads/1792105662391-Recurso_3north-face.jpg"
+      },
+      {
+        "id": "agenda-2",
+        "title": "Defensa Activa y Criptografía Poscuántica",
+        "time": "10:30 - 11:45 hrs",
+        "category": "Ciberseguridad",
+        "description": "Estrategias de blindaje y resiliencia para infraestructuras críticas ante la llegada inminente de la computación cuántica.",
+        "speakers": [
+          "Alex Thorne (Chief Security Architect)",
+          "Helena Zhang (Cryptosec Lead)"
+        ],
+        "moderators": [
+          "Rodrigo Castro (Consultor CISO)"
+        ],
+        "image": "/uploads/1792105676467-Recurso_3north-face.jpg"
+      },
+      {
+        "id": "agenda-3",
+        "title": "Arquitecturas Serverless Distribuidas a Escala Planetaria",
+        "time": "12:00 - 13:15 hrs",
+        "category": "Cloud & DevOps",
+        "description": "Patrones de diseño para sistemas de baja latencia con millones de transacciones por segundo en nubes híbridas.",
+        "speakers": [
+          "Camila Morales (Principal Cloud Architect)"
+        ],
+        "moderators": [
+          "Fernando Ruiz (DevOps Director)"
+        ],
+        "image": "/uploads/1792105688207-Recurso_3north-face.jpg"
+      },
+      {
+        "id": "agenda-4",
+        "title": "Centros de Cómputo Verdes y Algoritmos Eco-eficientes",
+        "time": "15:00 - 16:30 hrs",
+        "category": "Sostenibilidad & Tech",
+        "description": "Reducción de huella de carbono en el entrenamiento de redes neuronales a gran escala y energías limpias.",
+        "speakers": [
+          "Dr. Julian Bernardi (Fundador EcoCompute)"
+        ],
+        "moderators": [
+          "Lucía Fernández (Sustainability Advisor)"
+        ],
+        "image": "/uploads/1792105702627-Recurso_3north-face.jpg"
+      }
+    ]
+  },
+  "speakers": {
+    "title": "Ponentes Destacados",
+    "subtitle": "Conoce a las mentes brillantes que lideran la transformación digital en las empresas más innovadoras.",
+    "items": [
+      {
+        "id": "spk-1",
+        "name": "Dra. Sofia Navarro",
+        "role": "Vicepresidenta de IA & Algoritmos",
+        "company": "DeepMatrix Labs",
+        "badge": "Keynote Speaker",
+        "bio": "Pionera en investigación de sistemas multiagente y redes neuronales autoreflexivas con más de 15 años de trayectoria.",
+        "image": "/uploads/1792105198967-Maria_Elena_Gallego.png"
+      },
+      {
+        "id": "spk-2",
+        "name": "Alex Thorne",
+        "role": "Chief Security Architect",
+        "company": "CyberShield Global",
+        "badge": "Panelista",
+        "bio": "Asesor de seguridad informática para entidades financieras e infraestructuras críticas internacionales.",
+        "image": "/uploads/1792105210332-Pato_Bichara.png"
+      },
+      {
+        "id": "spk-3",
+        "name": "Camila Morales",
+        "role": "Principal Cloud Architect",
+        "company": "Aether Cloud Systems",
+        "badge": "Speaker",
+        "bio": "Especialista en escalabilidad de Kubernetes y microservicios sin servidor de alta disponibilidad.",
+        "image": "/uploads/1792105223037-Luis_de_la_Fuente.png"
+      },
+      {
+        "id": "spk-4",
+        "name": "Dr. Julian Bernardi",
+        "role": "Fundador & CEO",
+        "company": "EcoCompute Initiative",
+        "badge": "Keynote Speaker",
+        "bio": "Defensor de la computación verde y autor del marco de eficiencia energética computacional GreenScale.",
+        "image": "/uploads/1792105237410-Maria_Elena_Gallego.png"
+      }
+    ]
+  },
+  "broadcast": {
+    "title": "Broadcast",
+    "subtitle": "Hola",
+    "bgType": "gradient",
+    "bgGradient": "radial-gradient(ellipse at 65% 50%, #12b7c7 0%, #039aa9 45%, #1d1d1b 85%, #000000 100%)",
+    "bgCustomImage": "",
+    "items": [
+      {
+        "id": "bc-1",
+        "title": "El secreto de México para alimentar al mundo (y ganar más)",
+        "time": "10:10-10:50",
+        "youtubeId": "5qap5aO4i9A",
+        "description": "Estrategias de soberanía alimentaria, trazabilidad de cadena ganadera y valor agregado con perspectiva de sustentabilidad internacional.",
+        "speakers": "Macarena Hernández Directora General de Consejo Mexicano de la Carne",
+        "moderators": "Modera: Rosalía Lara Editora de ESG en Expansión",
+        "image": "/uploads/1792383743425-El-negocio-de-alimentar.png"
+      },
+      {
+        "id": "bc-2",
+        "title": "Centros de Datos: El dilema energético del futuro digital",
+        "time": "11:00-11:45",
+        "youtubeId": "L_LUpnjgPso",
+        "description": "La demanda creciente de energía provocada por la inteligencia artificial y los centros de datos en el norte del país.",
+        "speakers": "Ing. Carlos Mendoza, Mtra. Elena Rostova",
+        "moderators": "Modera: Redacción Expansión",
+        "image": "/uploads/1792383723893-Centros-de-Datos.png"
+      },
+      {
+        "id": "bc-3",
+        "title": "México sin el T-MEC: Escenarios y resiliencia corporativa",
+        "time": "12:00-12:50",
+        "youtubeId": "dQw4w9WgXcQ",
+        "description": "Análisis prospectivo sobre comercio exterior, nearshoring y certidumbre jurídica frente a la renegociación trilateral.",
+        "speakers": "Dra. Valeria Moy, Lic. Kenneth Smith",
+        "moderators": "Modera: Mesa de Economía",
+        "image": "/uploads/1792383712618-Me_xico-sin-el-TMEC.png"
+      }
+    ],
+    "bgColor": "#000000"
+  },
+  "faq": {
+    "title": "Preguntas Frecuentes",
+    "subtitle": "Resolvemos todas tus dudas sobre registro, acceso a las transmisiones y certificados.",
+    "items": [
+      {
+        "id": "faq-1",
+        "question": "¿El evento tiene costo o es de acceso gratuito?",
+        "answer": "El registro general para ver las transmisiones en vivo es 100% gratuito. Puedes asegurar tu lugar desde nuestro [botón de registro](#agenda) o seguir el stream en tiempo real."
+      },
+      {
+        "id": "faq-2",
+        "question": "¿Dónde puedo ver las transmisiones en directo si no puedo asistir de forma presencial?",
+        "answer": "Todas las conferencias se emiten en vivo desde nuestra sección de [Transmisiones en Vivo](#broadcast). Cada ponencia cuenta con su botón de reproducción directa vía YouTube Live."
+      },
+      {
+        "id": "faq-3",
+        "question": "¿Se entregarán certificados de participación?",
+        "answer": "Sí, todos los participantes registrados que completen al menos el 70% de las sesiones recibirán un certificado digital verificable en blockchain. Consulta los requisitos en nuestro [portal de soporte](https://summitinnovation.com/certificados)."
+      },
+      {
+        "id": "faq-4",
+        "question": "¿Las grabaciones quedarán disponibles después del evento?",
+        "answer": "¡Por supuesto! Las grabaciones se publicarán dentro de las 24 horas siguientes a cada jornada en nuestro canal oficial y en esta misma plataforma."
+      }
+    ]
+  },
+  "footer": {
+    "description": "El encuentro internacional más relevante de ciencia, tecnología y negocios digitales para la comunidad global.",
+    "copyright": "© Expansión Summit 2026. Todos los derechos reservados.",
+    "socials": [
+      {
+        "name": "YouTube",
+        "url": "https://youtube.com"
+      },
+      {
+        "name": "LinkedIn",
+        "url": "https://linkedin.com"
+      },
+      {
+        "name": "X / Twitter",
+        "url": "https://x.com"
+      },
+      {
+        "name": "Instagram",
+        "url": "https://instagram.com"
+      }
+    ],
+    "contactEmail": "info@summitinnovation.com",
+    "quickLinks": [
+      {
+        "label": "Código de Conducta",
+        "url": "#"
+      },
+      {
+        "label": "Términos y Privacidad",
+        "url": "#"
+      },
+      {
+        "label": "Prensa y Medios",
+        "url": "#"
+      }
+    ]
+  }
+}

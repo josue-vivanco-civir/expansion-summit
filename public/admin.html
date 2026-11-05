@@ -1,0 +1,1480 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CMS Summit Panel de Control</title>
+  <link rel="stylesheet" href="/css/admin.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700&family=Plus+Jakarta+Sans:wght@600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <div class="admin-layout">
+    <!-- SIDEBAR -->
+    <aside class="admin-sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon">⚡</div>
+        <div>
+          <div class="brand-title">Summit CMS</div>
+          <span class="brand-badge">Engine v1.0</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Configuración Global</div>
+        <button class="sidebar-tab-btn active" data-target="panel-appearance">
+          <span class="tab-icon">🎨</span>
+          <span class="tab-label">Apariencia y Marca</span>
+        </button>
+        <button class="sidebar-tab-btn" data-target="panel-reorder">
+          <span class="tab-icon">📐</span>
+          <span class="tab-label">Orden de Secciones</span>
+        </button>
+        <button class="sidebar-tab-btn" data-target="panel-seo">
+          <span class="tab-icon">🔍</span>
+          <span class="tab-label">SEO y Metadatos</span>
+        </button>
+
+        <div class="nav-section-label">Secciones Landing</div>
+        <button class="sidebar-tab-btn" data-target="panel-header">
+          <span class="tab-icon">🧭</span>
+          <span class="tab-label">1. Header y Menú</span>
+        </button>
+        <button class="sidebar-tab-btn" data-target="panel-hero">
+          <span class="tab-icon">🖼️</span>
+          <span class="tab-label">2. Portada (Hero)</span>
+        </button>
+        <button class="sidebar-tab-btn" data-target="panel-sponsors">
+          <span class="tab-icon">🤝</span>
+          <span class="tab-label">3. Patrocinadores</span>
+        </button>
+        <button class="sidebar-tab-btn" data-target="panel-video">
+          <span class="tab-icon">🎬</span>
+          <span class="tab-label">4. Sección de Video</span>
+        </button>
+        <button class="sidebar-tab-btn" data-target="panel-agenda">
+          <span class="tab-icon">📅</span>
+          <span class="tab-label">5. Agenda (Timeline)</span>
+        </button>
+        <button class="sidebar-tab-btn" data-target="panel-speakers">
+          <span class="tab-icon">👥</span>
+          <span class="tab-label">6. Ponentes (Speakers)</span>
+        </button>
+        <button class="sidebar-tab-btn" data-target="panel-broadcast">
+          <span class="tab-icon">📡</span>
+          <span class="tab-label">7. Broadcast (Slider Live)</span>
+        </button>
+        <button class="sidebar-tab-btn" data-target="panel-faq">
+          <span class="tab-icon">❓</span>
+          <span class="tab-label">8. FAQ (Preguntas)</span>
+        </button>
+        <button class="sidebar-tab-btn" data-target="panel-footer">
+          <span class="tab-icon">🦶</span>
+          <span class="tab-label">9. Footer</span>
+        </button>
+        <div class="nav-section-label">Plantillas Rápidas</div>
+        <button class="admin-btn admin-btn-secondary admin-btn-sm" onclick="loadPreset('esg-summit')" style="width:100%; margin-bottom: 0.5rem; justify-content:flex-start; background:#1e293b; color:#ffffff; border-color:#334155;">
+          <span>🌱 Cargar Expansión ESG 2026</span>
+        </button>
+
+        <div class="nav-section-label">Exportación Especial</div>
+        <button class="sidebar-tab-btn" data-target="panel-wordpress" style="background:rgba(0,115,170,0.15); color:#38bdf8; font-weight:700;">
+          <span class="tab-icon">⚡</span>
+          <span class="tab-label">Raw HTML para WordPress</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="admin-btn admin-btn-secondary admin-btn-sm" id="export-json-btn">
+          <span>💾 Exportar Respaldo</span>
+        </button>
+        <label class="admin-btn admin-btn-secondary admin-btn-sm" style="cursor:pointer; justify-content:center;">
+          <span>📂 Importar Respaldo</span>
+          <input type="file" id="import-json-input" accept=".json" style="display:none;">
+        </label>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="admin-main">
+      <!-- TOPBAR -->
+      <header class="admin-topbar">
+        <div class="topbar-title-wrap">
+          <h2 id="current-page-title">Apariencia y Marca</h2>
+          <span class="topbar-subtitle">Gestiona contenidos y diseño del Summit en tiempo real</span>
+        </div>
+        <div class="topbar-actions">
+          <button class="admin-btn" style="background:#0073aa; color:#ffffff; font-weight:700;" onclick="openWpGeneratorModal()">
+            <span>⚡ Raw HTML WordPress</span>
+          </button>
+          <a href="/" target="_blank" class="admin-btn admin-btn-secondary" title="Abrir Landing en una nueva pestaña">
+            <span>🌐 Ver Landing</span>
+          </a>
+          <button class="admin-btn admin-btn-secondary" id="open-preview-btn" title="Ver simulación embebida">
+            <span>👁️ Vista Previa</span>
+          </button>
+          <button class="admin-btn admin-btn-primary" id="save-all-btn">
+            <span>💾 Guardar Cambios</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- PANELS CONTAINER -->
+      <div class="admin-content">
+
+        <!-- ==========================================
+             PANEL: APARIENCIA
+             ========================================== -->
+        <section class="admin-panel active" id="panel-appearance">
+          <div class="card">
+            <h3 class="card-title">Identidad General del Evento</h3>
+            <p class="card-desc">Nombre y branding base para el evento.</p>
+            <div class="form-group">
+              <label class="form-label" for="app-event-title">Nombre Oficial del Summit</label>
+              <input type="text" id="app-event-title" class="form-input" placeholder="Ej: Global Summit Innovation 2026">
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">Logotipos (Header y Footer)</h3>
+            <p class="card-desc">Carga los logotipos que aparecerán en la cabecera fija y en el pie de página (archivo local o URL directa).</p>
+            
+            <div class="form-grid">
+              <!-- Header Logo -->
+              <div class="form-group">
+                <label class="form-label">Logo para Header</label>
+                <div class="image-upload-box">
+                  <div class="image-preview-wrap">
+                    <img id="header-logo-preview" src="/uploads/logo-summit-header.svg" alt="Preview Logo Header" class="image-preview-thumb">
+                  </div>
+                  <div class="image-inputs-col" style="display:flex; flex-direction:column; gap:6px; width:100%;">
+                    <input type="file" id="header-logo-file" accept="image/*" onchange="handleImageUpload(this, 'header-logo-preview', 'header-logo-feedback', null, 'header-logo-url')" class="form-input">
+                    <input type="url" id="header-logo-url" class="form-input" placeholder="O pega una URL directa: https://..." oninput="handleImageUrlInput(this, 'header-logo-preview', 'header-logo-feedback')">
+                    <div id="header-logo-feedback" class="upload-feedback"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Footer Logo -->
+              <div class="form-group">
+                <label class="form-label">Logo para Footer</label>
+                <div class="image-upload-box">
+                  <div class="image-preview-wrap">
+                    <img id="footer-logo-preview" src="/uploads/logo-summit-footer.svg" alt="Preview Logo Footer" class="image-preview-thumb" style="background:#0f172a; padding:6px;">
+                  </div>
+                  <div class="image-inputs-col" style="display:flex; flex-direction:column; gap:6px; width:100%;">
+                    <input type="file" id="footer-logo-file" accept="image/*" onchange="handleImageUpload(this, 'footer-logo-preview', 'footer-logo-feedback', null, 'footer-logo-url')" class="form-input">
+                    <input type="url" id="footer-logo-url" class="form-input" placeholder="O pega una URL directa: https://..." oninput="handleImageUrlInput(this, 'footer-logo-preview', 'footer-logo-feedback')">
+                    <div id="footer-logo-feedback" class="upload-feedback"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">Tipografías (Fuentes Web)</h3>
+            <p class="card-desc">Selecciona o escribe las fuentes tipográficas para títulos de módulo, títulos de ponencias y descripciones.</p>
+            
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label" for="app-font-module">Fuente para Títulos de Módulo</label>
+                <select id="app-font-module" class="form-select">
+                  <option value="Outfit">Outfit (Moderna & Impactante)</option>
+                  <option value="Plus Jakarta Sans">Plus Jakarta Sans (Geométrica)</option>
+                  <option value="Inter">Inter (Limpia & Minimalista)</option>
+                  <option value="Montserrat">Montserrat (Robusta)</option>
+                  <option value="Poppins">Poppins (Redonda)</option>
+                  <option value="Space Grotesk">Space Grotesk (Tech / Futurista)</option>
+                  <option value="Playfair Display">Playfair Display (Elegante Serif)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="app-font-talk">Fuente para Títulos de Ponencias</label>
+                <select id="app-font-talk" class="form-select">
+                  <option value="Plus Jakarta Sans">Plus Jakarta Sans</option>
+                  <option value="Outfit">Outfit</option>
+                  <option value="Inter">Inter</option>
+                  <option value="Montserrat">Montserrat</option>
+                  <option value="Poppins">Poppins</option>
+                  <option value="Space Grotesk">Space Grotesk</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="app-font-body">Fuente para Descripciones y Textos</label>
+                <select id="app-font-body" class="form-select">
+                  <option value="Inter">Inter (Excelente legibilidad)</option>
+                  <option value="Plus Jakarta Sans">Plus Jakarta Sans</option>
+                  <option value="Roboto">Roboto</option>
+                  <option value="Outfit">Outfit</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">Paleta de Colores</h3>
+            <p class="card-desc">Personaliza los colores exactos para títulos de módulo, ponencias, descripciones y fondos.</p>
+            
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Color Títulos de Módulo</label>
+                <div class="color-picker-row">
+                  <input type="color" id="color-module-title" class="color-input-picker">
+                  <input type="text" id="color-module-title-hex" class="form-input">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Color Títulos de Ponencias</label>
+                <div class="color-picker-row">
+                  <input type="color" id="color-talk-title" class="color-input-picker">
+                  <input type="text" id="color-talk-title-hex" class="form-input">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Color Descripciones</label>
+                <div class="color-picker-row">
+                  <input type="color" id="color-desc" class="color-input-picker">
+                  <input type="text" id="color-desc-hex" class="form-input">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Color Primario (Botones & Acentos)</label>
+                <div class="color-picker-row">
+                  <input type="color" id="color-primary" class="color-input-picker">
+                  <input type="text" id="color-primary-hex" class="form-input">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Color Acento (Badges / Alertas)</label>
+                <div class="color-picker-row">
+                  <input type="color" id="color-accent" class="color-input-picker">
+                  <input type="text" id="color-accent-hex" class="form-input">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Fondo de Landing</label>
+                <div class="color-picker-row">
+                  <input type="color" id="color-bg" class="color-input-picker">
+                  <input type="text" id="color-bg-hex" class="form-input">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Fondo Header</label>
+                <div class="color-picker-row">
+                  <input type="color" id="color-header-bg" class="color-input-picker">
+                  <input type="text" id="color-header-bg-hex" class="form-input">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Fondo Footer</label>
+                <div class="color-picker-row">
+                  <input type="color" id="color-footer-bg" class="color-input-picker">
+                  <input type="text" id="color-footer-bg-hex" class="form-input">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">Color de Background por Sección (8 Secciones)</h3>
+            <p class="card-desc">Asigna un color de fondo individual e independiente a cada una de las secciones de la maquetación.</p>
+            
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">1. Fondo Header</label>
+                <div class="color-picker-row">
+                  <input type="color" id="color-sec-header" class="color-input-picker">
+                  <input type="text" id="color-sec-header-hex" class="form-input">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">2. Fondo Portada (Hero)</label>
+                <div class="color-picker-row">
+                  <input type="color" id="color-sec-hero" class="color-input-picker">
+                  <input type="text" id="color-sec-hero-hex" class="form-input">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">3. Fondo Sección Video</label>
+                <div class="color-picker-row">
+                  <input type="color" id="color-sec-video" class="color-input-picker">
+                  <input type="text" id="color-sec-video-hex" class="form-input">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">4. Fondo Agenda (Timeline)</label>
+                <div class="color-picker-row">
+                  <input type="color" id="color-sec-agenda" class="color-input-picker">
+                  <input type="text" id="color-sec-agenda-hex" class="form-input">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">5. Fondo Ponentes (Speakers)</label>
+                <div class="color-picker-row">
+                  <input type="color" id="color-sec-speakers" class="color-input-picker">
+                  <input type="text" id="color-sec-speakers-hex" class="form-input">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">6. Fondo Broadcast (Salas)</label>
+                <div class="color-picker-row">
+                  <input type="color" id="color-sec-broadcast" class="color-input-picker">
+                  <input type="text" id="color-sec-broadcast-hex" class="form-input">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">7. Fondo FAQ (Preguntas)</label>
+                <div class="color-picker-row">
+                  <input type="color" id="color-sec-faq" class="color-input-picker">
+                  <input type="text" id="color-sec-faq-hex" class="form-input">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">8. Fondo Footer</label>
+                <div class="color-picker-row">
+                  <input type="color" id="color-sec-footer" class="color-input-picker">
+                  <input type="text" id="color-sec-footer-hex" class="form-input">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">9. Fondo Patrocinadores</label>
+                <div class="color-picker-row">
+                  <input type="color" id="color-sec-sponsors" class="color-input-picker">
+                  <input type="text" id="color-sec-sponsors-hex" class="form-input">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">Editor CSS Personalizado (Custom CSS Override)</h3>
+            <p class="card-desc">Escribe reglas CSS para hacer override de estilos particulares previamente definidos en la maquetación. Se inyecta en la Landing Page y se compila dentro del bloque Raw HTML para WordPress.</p>
+            
+            <div class="form-group">
+              <label class="form-label" for="app-custom-css">Código CSS (Reglas personalizadas)</label>
+              <textarea id="app-custom-css" class="form-textarea" rows="6" placeholder="/* Escribe tus reglas CSS aquí */&#10;#agenda { padding-top: 80px; }&#10;.timeline-traveling-dot { box-shadow: 0 0 25px #38bdf8; }&#10;.speaker-card { border-radius: 16px; }" style="font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 13px; line-height: 1.5; background: #0b1120; color: #38bdf8; border-color: #334155;"></textarea>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             PANEL: ORDEN DE SECCIONES (DRAG / ORDER)
+             ========================================== -->
+        <section class="admin-panel" id="panel-reorder">
+          <div class="card" style="border-left: 4px solid #38bdf8;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem;">
+              <div>
+                <h3 class="card-title" style="color:#38bdf8;">📐 Gestor de Orden de Secciones</h3>
+                <p class="card-desc" style="margin-bottom:0;">
+                  Personaliza a conveniencia la posición de las secciones móviles dentro de la landing page. El Header y la Portada (Hero) se mantienen fijos al inicio, mientras que las Preguntas Frecuentes (FAQ) y el Footer se mantienen fijos al final.
+                </p>
+              </div>
+              <button class="admin-btn admin-btn-secondary admin-btn-sm" onclick="resetSectionOrder()" title="Restablecer el orden por defecto">
+                <span>🔄 Restaurar Predeterminado</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Fixed Top Sections Info -->
+          <div class="card" style="background:rgba(15, 23, 42, 0.4); border:1px dashed #334155;">
+            <div style="font-size:0.85rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.6rem;">
+              🔒 Secciones Fijas Superiores
+            </div>
+            <div style="display:flex; flex-direction:column; gap:0.5rem;">
+              <div class="reorder-fixed-item">
+                <span class="reorder-fixed-badge">Fijo #1</span>
+                <span class="reorder-fixed-icon">🧭</span>
+                <div class="reorder-fixed-info">
+                  <strong>Header y Menú de Navegación</strong>
+                  <span>Logo institucional, anclas internas y botón de registro</span>
+                </div>
+              </div>
+              <div class="reorder-fixed-item">
+                <span class="reorder-fixed-badge">Fijo #2</span>
+                <span class="reorder-fixed-icon">🖼️</span>
+                <div class="reorder-fixed-info">
+                  <strong>Portada / Hero (1920x938)</strong>
+                  <span>Banner principal, títulos, badge, CTA y métricas</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Movable Sections Container -->
+          <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+              <div>
+                <h4 class="card-title" style="margin:0;">⚡ Secciones Reordenables (Móvil y Desktop)</h4>
+                <p class="card-desc" style="margin-top:0.25rem;">Usa los botones <strong>▲ Subir</strong> y <strong>▼ Bajar</strong> para cambiar la posición de cada sección.</p>
+              </div>
+              <span id="reorder-status-badge" style="background:rgba(56, 189, 248, 0.15); color:#38bdf8; padding:4px 10px; border-radius:99px; font-size:12px; font-weight:700;">5 Secciones Activas</span>
+            </div>
+
+            <div id="reorder-sections-list" class="reorder-list">
+              <!-- Rendered dynamically by renderReorderList() in admin.js -->
+            </div>
+          </div>
+
+          <!-- Fixed Bottom Sections Info -->
+          <div class="card" style="background:rgba(15, 23, 42, 0.4); border:1px dashed #334155;">
+            <div style="font-size:0.85rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.6rem;">
+              🔒 Secciones Fijas Inferiores
+            </div>
+            <div style="display:flex; flex-direction:column; gap:0.5rem;">
+              <div class="reorder-fixed-item">
+                <span class="reorder-fixed-badge">Fijo #8</span>
+                <span class="reorder-fixed-icon">❓</span>
+                <div class="reorder-fixed-info">
+                  <strong>Preguntas Frecuentes (FAQ)</strong>
+                  <span>Acordeón interactivo con enlaces y respuestas</span>
+                </div>
+              </div>
+              <div class="reorder-fixed-item">
+                <span class="reorder-fixed-badge">Fijo #9</span>
+                <span class="reorder-fixed-icon">🦶</span>
+                <div class="reorder-fixed-info">
+                  <strong>Footer Institucional</strong>
+                  <span>Redes sociales, enlaces de pie y copyright</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             PANEL: SEO Y METADATOS (BUSCADORES & REDES)
+             ========================================== -->
+        <section class="admin-panel" id="panel-seo">
+          <div class="card" style="border-left: 4px solid #10b981;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.5rem;">
+              <div>
+                <h3 class="card-title" style="color:#10b981;">🔍 Optimización SEO y Redes Sociales</h3>
+                <p class="card-desc" style="margin-bottom:0;">
+                  Configura los metadatos esenciales para indexación en buscadores (Google, Bing) y optimiza cómo se verá la landing page cuando los usuarios compartan el enlace en WhatsApp, LinkedIn, X (Twitter) y Facebook.
+                </p>
+              </div>
+              <span style="background:rgba(16, 185, 129, 0.15); color:#10b981; padding:4px 12px; border-radius:99px; font-size:12px; font-weight:700;">SEO Ready</span>
+            </div>
+          </div>
+
+          <!-- Metadatos de Búsqueda -->
+          <div class="card">
+            <h3 class="card-title">Metadatos para Motores de Búsqueda (Google / Bing)</h3>
+            <p class="card-desc">Información indexable que determina el título, descripción y rastreo del evento.</p>
+
+            <div class="form-group">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem;">
+                <label class="form-label" for="seo-title" style="margin:0;">Título de la Página (Meta Title)</label>
+                <span id="seo-title-count" style="font-size:0.75rem; color:#94a3b8; font-weight:600;">0 / 60 caracteres</span>
+              </div>
+              <input type="text" id="seo-title" class="form-input" placeholder="Summit Innovation 2026 | Cumbre Global de Tecnología" oninput="updateSeoCharCounts()">
+              <span class="hint" style="margin-top:0.35rem; display:block;">Recomendado: 50 a 60 caracteres para evitar que Google recorte el título.</span>
+            </div>
+
+            <div class="form-group">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem;">
+                <label class="form-label" for="seo-description" style="margin:0;">Descripción del Evento (Meta Description)</label>
+                <span id="seo-desc-count" style="font-size:0.75rem; color:#94a3b8; font-weight:600;">0 / 160 caracteres</span>
+              </div>
+              <textarea id="seo-description" class="form-textarea" rows="3" placeholder="La cumbre internacional más relevante de inteligencia artificial, transformación digital y sostenibilidad tecnológica. Regístrate gratis." oninput="updateSeoCharCounts()"></textarea>
+              <span class="hint" style="margin-top:0.35rem; display:block;">Recomendado: 140 a 160 caracteres con llamada a la acción clara.</span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="seo-keywords">
+                <span>Palabras Clave (Keywords)</span>
+                <span class="hint">Separadas por coma</span>
+              </label>
+              <input type="text" id="seo-keywords" class="form-input" placeholder="summit, tecnologia, inteligencia artificial, innovacion, conferencias 2026, streaming">
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label" for="seo-robots">Directiva Meta Robots</label>
+                <select id="seo-robots" class="form-select">
+                  <option value="index, follow">index, follow (Permitir indexación y seguir enlaces - Recomendado)</option>
+                  <option value="noindex, follow">noindex, follow (No indexar en Google pero seguir enlaces)</option>
+                  <option value="index, nofollow">index, nofollow (Indexar pero no seguir enlaces)</option>
+                  <option value="noindex, nofollow">noindex, nofollow (Privado / Oculto a buscadores)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="seo-canonical">
+                  <span>URL Canónica (Canonical URL)</span>
+                  <span class="hint">Previene contenido duplicado</span>
+                </label>
+                <input type="url" id="seo-canonical" class="form-input" placeholder="https://expansion.mx/esgsummit">
+              </div>
+            </div>
+          </div>
+
+          <!-- Open Graph & Social Cards -->
+          <div class="card">
+            <h3 class="card-title">Metadatos para Redes Sociales (Open Graph & Twitter Cards)</h3>
+            <p class="card-desc">Controla la miniatura, titular y resumen cuando alguien comparte el link por WhatsApp, LinkedIn, X (Twitter) o Facebook.</p>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label" for="seo-og-title">Título Social (og:title)</label>
+                <input type="text" id="seo-og-title" class="form-input" placeholder="Summit Innovation 2026 - Conectando el Futuro" oninput="updateSeoSocialPreview()">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="seo-og-url">URL Social Canónica (og:url)</label>
+                <input type="url" id="seo-og-url" class="form-input" placeholder="https://expansion.mx/esgsummit" oninput="updateSeoSocialPreview()">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="seo-og-description">Descripción Social (og:description)</label>
+              <textarea id="seo-og-description" class="form-textarea" rows="2" placeholder="Más de 40 líderes internacionales debatiendo sobre agentes autónomos, ciberseguridad y sustentabilidad." oninput="updateSeoSocialPreview()"></textarea>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label" for="seo-og-type">Tipo de Contenido (og:type)</label>
+                <select id="seo-og-type" class="form-select">
+                  <option value="website">website (Sitio Web General)</option>
+                  <option value="event">event (Evento / Conferencia)</option>
+                  <option value="article">article (Artículo / Publicación)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="seo-twitter-card">Formato Twitter Card (twitter:card)</label>
+                <select id="seo-twitter-card" class="form-select">
+                  <option value="summary_large_image">summary_large_image (Tarjeta grande con imagen panorámica - Recomendado)</option>
+                  <option value="summary">summary (Tarjeta pequeña con miniatura cuadrada)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                <span>Imagen de Portada para Compartir (og:image / twitter:image)</span>
+                <span class="hint">Tamaño ideal: 1200 x 630 px (proporción 1.91:1)</span>
+              </label>
+              <div class="image-upload-box" style="min-height:180px;">
+                <div class="image-preview-wrap" style="height:140px; background:#0f172a; display:flex; align-items:center; justify-content:center;">
+                  <img id="seo-og-img-preview" src="/uploads/1792104657106-hero-optimized.jpg" alt="Preview Open Graph" class="image-preview-thumb" style="max-height:130px; width:auto; border-radius:6px; object-fit:cover;">
+                </div>
+                <input type="file" accept="image/*" onchange="handleImageUpload(this, 'seo-og-img-preview'); setTimeout(updateSeoSocialPreview, 300);" class="form-input">
+              </div>
+            </div>
+          </div>
+
+          <!-- Previsualizaciones en Vivo -->
+          <div class="card">
+            <h3 class="card-title">Previsualización en Buscadores y Redes Sociales</h3>
+            <p class="card-desc">Así es como los usuarios verán tu página en los resultados de búsqueda y al compartirla.</p>
+
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:1.5rem; margin-top:1rem;">
+              <!-- Google Preview -->
+              <div>
+                <h4 style="font-size:0.85rem; font-weight:700; color:#64748b; text-transform:uppercase; margin-bottom:0.75rem;">🌐 Google Search Snippet</h4>
+                <div class="seo-google-preview-box">
+                  <div class="seo-google-url" id="seo-prev-google-url">https://expansion.mx/esgsummit</div>
+                  <div class="seo-google-title" id="seo-prev-google-title">Summit Innovation 2026 | Cumbre Global de Tecnología</div>
+                  <div class="seo-google-desc" id="seo-prev-google-desc">La cumbre internacional más relevante de inteligencia artificial, transformación digital y sostenibilidad tecnológica. Regístrate gratis.</div>
+                </div>
+              </div>
+
+              <!-- Social Share Card Preview -->
+              <div>
+                <h4 style="font-size:0.85rem; font-weight:700; color:#64748b; text-transform:uppercase; margin-bottom:0.75rem;">📲 WhatsApp / LinkedIn / Twitter Share Card</h4>
+                <div class="seo-social-preview-box">
+                  <div class="seo-social-thumb-wrap">
+                    <img id="seo-prev-social-img" src="/uploads/1792104657106-hero-optimized.jpg" alt="Preview Compartir">
+                  </div>
+                  <div class="seo-social-content">
+                    <div class="seo-social-domain" id="seo-prev-social-domain">EXPANSION.MX</div>
+                    <div class="seo-social-title" id="seo-prev-social-title">Summit Innovation 2026 - Conectando el Futuro</div>
+                    <div class="seo-social-desc" id="seo-prev-social-desc">Más de 40 líderes internacionales debatiendo sobre agentes autónomos, ciberseguridad y sustentabilidad.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="admin-panel" id="panel-header">
+          <div class="card">
+            <div class="items-table-header">
+              <div>
+                <h3 class="card-title">Menú de Navegación Interno</h3>
+                <p class="card-desc">Crea enlaces directos a las anclas de las secciones internas (#hero, #video, #agenda, etc.).</p>
+              </div>
+              <button class="admin-btn admin-btn-primary" onclick="openAddNavModal()">+ Agregar Enlace</button>
+            </div>
+
+            <div id="nav-items-list" class="items-list">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">Botón de Acción del Header (CTA)</h3>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label" for="header-cta-label">Texto del Botón</label>
+                <input type="text" id="header-cta-label" class="form-input" placeholder="Registro Gratis">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="header-cta-url">Destino (Ancla o URL)</label>
+                <input type="text" id="header-cta-url" class="form-input" placeholder="#agenda">
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             PANEL: 2. HERO (PORTADA 1920x938)
+             ========================================== -->
+        <section class="admin-panel" id="panel-hero">
+          <div class="card">
+            <h3 class="card-title">Imágenes de Portada (Desktop & Mobile)</h3>
+            <p class="card-desc">Soporta carga independiente para versión escritorio (1920x938) y smartphones/tablets en vertical para una adaptación visual óptima.</p>
+
+            <div class="form-grid">
+              <!-- Desktop Cover -->
+              <div class="form-group">
+                <label class="form-label">Portada Desktop (1920px x 938px)</label>
+                <div class="image-upload-box">
+                  <div class="image-preview-wrap">
+                    <img id="hero-cover-preview" src="/uploads/hero-cover.jpg" alt="Preview Hero Desktop" class="image-preview-thumb hero-preview-thumb">
+                  </div>
+                  <div class="image-inputs-col" style="display:flex; flex-direction:column; gap:6px; width:100%;">
+                    <input type="file" id="hero-cover-file" accept="image/*" onchange="handleImageUpload(this, 'hero-cover-preview', 'hero-feedback', '1920x938', 'hero-cover-url')" class="form-input">
+                    <input type="url" id="hero-cover-url" class="form-input" placeholder="O pega una URL directa: https://..." oninput="handleImageUrlInput(this, 'hero-cover-preview', 'hero-feedback')">
+                    <div id="hero-feedback" class="upload-feedback">
+                      Recomendado: 1920 × 938 px (WebP o JPG optimizado)
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Mobile Cover -->
+              <div class="form-group">
+                <label class="form-label">Portada Mobile (Vertical / Smartphones)</label>
+                <div class="image-upload-box">
+                  <div class="image-preview-wrap">
+                    <img id="hero-cover-mobile-preview" src="/uploads/hero-cover.jpg" alt="Preview Hero Mobile" class="image-preview-thumb hero-preview-thumb">
+                  </div>
+                  <div class="image-inputs-col" style="display:flex; flex-direction:column; gap:6px; width:100%;">
+                    <input type="file" id="hero-cover-mobile-file" accept="image/*" onchange="handleImageUpload(this, 'hero-cover-mobile-preview', 'hero-mobile-feedback', null, 'hero-cover-mobile-url')" class="form-input">
+                    <input type="url" id="hero-cover-mobile-url" class="form-input" placeholder="O pega una URL directa: https://..." oninput="handleImageUrlInput(this, 'hero-cover-mobile-preview', 'hero-mobile-feedback')">
+                    <div id="hero-mobile-feedback" class="upload-feedback">
+                      Recomendado: 750 × 1000 px o formato vertical
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">Graduación de Overlay y Opciones de Portada</h3>
+            <p class="card-desc">Ajusta la opacidad y color de la capa oscura sobre la imagen de fondo, o activa el modo limpio solo con la imagen de portada.</p>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label" for="hero-overlay-opacity">
+                  <span>Opacidad del Overlay: </span>
+                  <span id="hero-overlay-opacity-val" style="font-weight:700; color:#38bdf8;">70%</span>
+                </label>
+                <input type="range" id="hero-overlay-opacity" min="0" max="100" value="70" class="form-range" style="width:100%; height:8px; cursor:pointer;" oninput="document.getElementById('hero-overlay-opacity-val').textContent = this.value + '%'">
+                <div style="display:flex; justify-content:space-between; font-size:11px; color:#64748b; margin-top:4px;">
+                  <span>0% (Transparente)</span>
+                  <span>50%</span>
+                  <span>100% (Sólido)</span>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Color del Overlay</label>
+                <div class="color-picker-row">
+                  <input type="color" id="hero-overlay-color" class="color-input-picker" value="#000000">
+                  <input type="text" id="hero-overlay-color-hex" class="form-input" value="#000000">
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top:1.25rem; padding:12px 16px; background:rgba(30,41,59,0.5); border:1px solid #334155; border-radius:8px;">
+              <label style="display:flex; align-items:flex-start; gap:12px; cursor:pointer;">
+                <input type="checkbox" id="hero-hide-content" style="width:20px; height:20px; margin-top:2px; accent-color:#067999; cursor:pointer;">
+                <div>
+                  <div style="font-weight:600; color:#f8fafc; font-size:14px;">Ocultar información y dejar solo imagen de cover</div>
+                  <div style="font-size:12px; color:#94a3b8; margin-top:2px;">Oculta títulos, subtítulos, botones y estadísticas para presentar una portada visual limpia con la pura imagen o banner gráfico.</div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">Textos y Botones de Portada</h3>
+            <div class="form-group">
+              <label class="form-label" for="hero-badge">Insignia / Badge Superior</label>
+              <input type="text" id="hero-badge" class="form-input" placeholder="15 AL 17 OCTUBRE 2026 • HYBRID SUMMIT">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="hero-title">Título Principal de la Portada</label>
+              <input type="text" id="hero-title" class="form-input" placeholder="El Futuro de la Tecnología...">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="hero-subtitle">Subtítulo / Bajada de Portada</label>
+              <textarea id="hero-subtitle" class="form-textarea" placeholder="Descripción resumida del summit..."></textarea>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label" for="hero-cta-pri-label">Botón Principal (Texto)</label>
+                <input type="text" id="hero-cta-pri-label" class="form-input" placeholder="Explorar Agenda">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="hero-cta-pri-anchor">Botón Principal (Ancla)</label>
+                <input type="text" id="hero-cta-pri-anchor" class="form-input" placeholder="#agenda">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="hero-cta-sec-label">Botón Secundario (Texto)</label>
+                <input type="text" id="hero-cta-sec-label" class="form-input" placeholder="Ver Transmisión en Vivo">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="hero-cta-sec-anchor">Botón Secundario (Ancla)</label>
+                <input type="text" id="hero-cta-sec-anchor" class="form-input" placeholder="#broadcast">
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             PANEL: 3. PATROCINADORES (SPONSORS)
+             ========================================== -->
+        <section class="admin-panel" id="panel-sponsors">
+          <div class="card">
+            <h3 class="card-title">Configuración de Patrocinadores</h3>
+            <p class="card-desc">Carga la imagen compuesta de logos tanto para Desktop como para Mobile. El sistema servirá la imagen optimizada mediante <code>&lt;picture&gt;</code> según el dispositivo del visitante.</p>
+
+            <div style="margin-bottom:1.25rem; padding:12px 16px; background:rgba(30,41,59,0.5); border:1px solid #334155; border-radius:8px;">
+              <label style="display:flex; align-items:center; gap:12px; cursor:pointer;">
+                <input type="checkbox" id="sponsors-enabled" checked style="width:20px; height:20px; accent-color:#067999; cursor:pointer;">
+                <div>
+                  <div style="font-weight:600; color:#f8fafc; font-size:14px;">Habilitar y Mostrar Sección de Patrocinadores</div>
+                  <div style="font-size:12px; color:#94a3b8; margin-top:2px;">Desactiva este selector si el evento no cuenta con patrocinadores o si deseas ocultarlo temporalmente.</div>
+                </div>
+              </label>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="sponsors-label">Etiqueta o Título Superior</label>
+              <input type="text" id="sponsors-label" class="form-input" placeholder="PATROCINADORES Y ALIADOS">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="sponsors-subtitle">Subtítulo Descriptivo (Opcional)</label>
+              <input type="text" id="sponsors-subtitle" class="form-input" placeholder="Empresas líderes impulsando la transformación">
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">Imágenes Compuestas de Logotipos (Desktop & Mobile)</h3>
+            <p class="card-desc">Sube la composición de marcas y logotipos. Se recomienda formato PNG transparente o SVG de alta resolución.</p>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">
+                  <span>Logos para Desktop (Pantallas Grandes)</span>
+                  <span class="hint">Recomendado: 1200 x 200px aprox.</span>
+                </label>
+                <div class="image-upload-box" style="min-height:160px;">
+                  <div class="image-preview-wrap" style="height:120px; background:#f8fafc; display:flex; align-items:center; justify-content:center; padding:10px;">
+                    <img id="sponsors-img-preview" src="/uploads/logos-sitioesg.png" alt="Logos Desktop" class="image-preview-thumb" style="max-height:100px; width:auto; object-fit:contain;">
+                  </div>
+                  <div class="image-inputs-col" style="display:flex; flex-direction:column; gap:6px; width:100%;">
+                    <input type="file" accept="image/*" onchange="handleImageUpload(this, 'sponsors-img-preview', null, null, 'sponsors-img-url')" class="form-input">
+                    <input type="url" id="sponsors-img-url" class="form-input" placeholder="O pega una URL directa: https://..." oninput="handleImageUrlInput(this, 'sponsors-img-preview')">
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">
+                  <span>Logos para Mobile (Smartphones)</span>
+                  <span class="hint">Recomendado: diseño apilado vertical</span>
+                </label>
+                <div class="image-upload-box" style="min-height:160px;">
+                  <div class="image-preview-wrap" style="height:120px; background:#f8fafc; display:flex; align-items:center; justify-content:center; padding:10px;">
+                    <img id="sponsors-img-mobile-preview" src="/uploads/logos-sitioesg.png" alt="Logos Mobile" class="image-preview-thumb" style="max-height:100px; width:auto; object-fit:contain;">
+                  </div>
+                  <div class="image-inputs-col" style="display:flex; flex-direction:column; gap:6px; width:100%;">
+                    <input type="file" accept="image/*" onchange="handleImageUpload(this, 'sponsors-img-mobile-preview', null, null, 'sponsors-img-mobile-url')" class="form-input">
+                    <input type="url" id="sponsors-img-mobile-url" class="form-input" placeholder="O pega una URL directa: https://..." oninput="handleImageUrlInput(this, 'sponsors-img-mobile-preview')">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             PANEL: 4. SECCIÓN DE VIDEO
+             ========================================== -->
+        <section class="admin-panel" id="panel-video">
+          <div class="card">
+            <h3 class="card-title">Video Promocional / Tráiler</h3>
+            <p class="card-desc">Gestiona el video que se reproducirá en la sección central de la landing page.</p>
+
+            <div class="form-group">
+              <label class="form-label" for="video-title">Título del Módulo de Video</label>
+              <input type="text" id="video-title" class="form-input" placeholder="Conoce la Experiencia Summit">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="video-subtitle">Subtítulo Descriptivo</label>
+              <textarea id="video-subtitle" class="form-textarea" placeholder="Un vistazo exclusivo a las conferencias..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="video-youtube-id">
+                <span>ID de Video de YouTube</span>
+                <span class="hint">Ej: L_LUpnjgPso o enlace completo</span>
+              </label>
+              <input type="text" id="video-youtube-id" class="form-input" placeholder="L_LUpnjgPso">
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             PANEL: 4. AGENDA (TIMELINE)
+             ========================================== -->
+        <section class="admin-panel" id="panel-agenda">
+          <div class="card">
+            <h3 class="card-title">Configuración del Módulo de Agenda</h3>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label" for="agenda-title-input">Título del Módulo</label>
+                <input type="text" id="agenda-title-input" class="form-input">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="agenda-categories-input">
+                  <span>Categorías de Filtro</span>
+                  <span class="hint">Separadas por coma</span>
+                </label>
+                <input type="text" id="agenda-categories-input" class="form-input" placeholder="Todas, IA, Ciberseguridad, Cloud">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="agenda-subtitle-input">Subtítulo</label>
+              <input type="text" id="agenda-subtitle-input" class="form-input">
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="items-table-header">
+              <div>
+                <h3 class="card-title">Publicaciones de Ponencias (Timeline)</h3>
+                <p class="card-desc">Cada ponencia cuenta con imagen, hora, categoría, título, descripción, ponente(s) y moderador(es).</p>
+              </div>
+              <button class="admin-btn admin-btn-primary" onclick="openAddAgendaModal()">+ Nueva Ponencia</button>
+            </div>
+
+            <div id="agenda-items-list" class="items-list">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             PANEL: 5. PONENTES (SPEAKERS)
+             ========================================== -->
+        <section class="admin-panel" id="panel-speakers">
+          <div class="card">
+            <h3 class="card-title">Configuración del Módulo de Ponentes</h3>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label" for="speakers-title-input">Título del Módulo</label>
+                <input type="text" id="speakers-title-input" class="form-input">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="speakers-subtitle-input">Subtítulo</label>
+                <input type="text" id="speakers-subtitle-input" class="form-input">
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="items-table-header">
+              <div>
+                <h3 class="card-title">Directorio de Ponentes</h3>
+                <p class="card-desc">Gestiona las fichas de los ponentes magistrales y panelistas.</p>
+              </div>
+              <button class="admin-btn admin-btn-primary" onclick="openAddSpeakerModal()">+ Nuevo Ponente</button>
+            </div>
+
+            <div id="speakers-items-list" class="items-list">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             PANEL: 6. BROADCAST (SLIDER LIVE)
+             ========================================== -->
+        <section class="admin-panel" id="panel-broadcast">
+          <div class="card">
+            <h3 class="card-title">Configuración del Módulo Broadcast</h3>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label" for="broadcast-title-input">Título del Módulo</label>
+                <input type="text" id="broadcast-title-input" class="form-input">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="broadcast-subtitle-input">Subtítulo (Opcional)</label>
+                <input type="text" id="broadcast-subtitle-input" class="form-input">
+              </div>
+            </div>
+          </div>
+
+          <!-- Personalización de Fondo (Gradiente / Imagen sin repetir ponentes) -->
+          <div class="card">
+            <h3 class="card-title">Fondo de la Sección Broadcast (Gradiente o Imagen)</h3>
+            <p class="card-desc">Personaliza el fondo del escenario. La imagen o gradiente se aplica limpiamente a toda la sección sin duplicar las fotos de los ponentes.</p>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label" for="broadcast-bg-type">Tipo de Fondo</label>
+                <select id="broadcast-bg-type" class="form-select" onchange="handleBroadcastBgTypeChange()">
+                  <option value="gradient">Gradiente Dinámico (Recomendado)</option>
+                  <option value="image">Imagen Personalizada</option>
+                  <option value="color">Color Sólido</option>
+                </select>
+              </div>
+
+              <div class="form-group" id="broadcast-color-group">
+                <label class="form-label">Color Sólido de Respaldo</label>
+                <div class="color-picker-row">
+                  <input type="color" id="broadcast-bg-color" class="color-input-picker" value="#001040">
+                  <input type="text" id="broadcast-bg-color-hex" class="form-input" value="#001040">
+                </div>
+              </div>
+            </div>
+
+            <!-- Gradiente Presets & Custom Input -->
+            <div id="broadcast-gradient-group">
+              <label class="form-label">Estilos de Gradiente Predefinidos</label>
+              <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:0.75rem;">
+                <button type="button" class="admin-btn admin-btn-secondary admin-btn-sm" onclick="setBroadcastGradientPreset('expansion')">
+                  <span>🔵 Azul Expansión ESG</span>
+                </button>
+                <button type="button" class="admin-btn admin-btn-secondary admin-btn-sm" onclick="setBroadcastGradientPreset('neon')">
+                  <span>⚡ Azul Eléctrico Neón</span>
+                </button>
+                <button type="button" class="admin-btn admin-btn-secondary admin-btn-sm" onclick="setBroadcastGradientPreset('dark')">
+                  <span>🌑 Carbón / Editorial</span>
+                </button>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="broadcast-bg-gradient">Código CSS del Gradiente</label>
+                <textarea id="broadcast-bg-gradient" class="form-textarea" rows="2" style="font-family:monospace; font-size:12px; background:#0f172a; color:#38bdf8;"></textarea>
+              </div>
+            </div>
+
+            <!-- Imagen Personalizada -->
+            <div id="broadcast-image-group" style="display:none; margin-top:1rem;">
+              <label class="form-label">Imagen de Fondo Personalizada (Textura / Abstracto)</label>
+              <div class="image-upload-box" style="min-height:140px;">
+                <div class="image-preview-wrap" style="height:100px; background:#0f172a; display:flex; align-items:center; justify-content:center;">
+                  <img id="broadcast-bg-img-preview" src="" alt="Fondo Broadcast" class="image-preview-thumb" style="max-height:90px; width:auto; border-radius:4px;">
+                </div>
+                <input type="file" accept="image/*" onchange="handleImageUpload(this, 'broadcast-bg-img-preview')" class="form-input">
+              </div>
+            </div>
+
+            <div style="margin-top:1rem; padding:10px 14px; background:rgba(56, 189, 248, 0.08); border-left:3px solid #38bdf8; border-radius:4px; font-size:0.825rem; color:#cbd5e1; line-height:1.5;">
+              💡 <strong>Diseño Limpio:</strong> Las fotos de los ponentes se proyectarán exclusivamente dentro de la esfera central del escenario y en la bandeja inferior derecha de próximas ponencias, garantizando una estética pulida.
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="items-table-header">
+              <div>
+                <h3 class="card-title">Entradas de Transmisión del Broadcast (Slider)</h3>
+                <p class="card-desc">Cada ponencia tiene imagen, título, hora, descripción opcional, ponentes, moderadores y su ID de YouTube Live para el modal.</p>
+              </div>
+              <button class="admin-btn admin-btn-primary" onclick="openAddBroadcastModal()">+ Nueva Entrada Live</button>
+            </div>
+
+            <div id="broadcast-items-list" class="items-list">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             PANEL: 7. FAQ (PREGUNTAS FRECUENTES)
+             ========================================== -->
+        <section class="admin-panel" id="panel-faq">
+          <div class="card">
+            <h3 class="card-title">Configuración del Módulo FAQ</h3>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label" for="faq-title-input">Título del Módulo</label>
+                <input type="text" id="faq-title-input" class="form-input">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="faq-subtitle-input">Subtítulo</label>
+                <input type="text" id="faq-subtitle-input" class="form-input">
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="items-table-header">
+              <div>
+                <h3 class="card-title">Preguntas y Respuestas</h3>
+                <p class="card-desc">Crea preguntas con respuestas que admiten enlaces internos (#agenda, #broadcast) o URLs externas.</p>
+              </div>
+              <button class="admin-btn admin-btn-primary" onclick="openAddFaqModal()">+ Nueva Pregunta</button>
+            </div>
+
+            <div id="faq-items-list" class="items-list">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             PANEL: 8. FOOTER
+             ========================================== -->
+        <section class="admin-panel" id="panel-footer">
+          <div class="card">
+            <h3 class="card-title">Información del Footer</h3>
+            <div class="form-group">
+              <label class="form-label" for="footer-description-input">Descripción Institucional</label>
+              <textarea id="footer-description-input" class="form-textarea"></textarea>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label" for="footer-copyright-input">Texto de Derechos (Copyright)</label>
+                <input type="text" id="footer-copyright-input" class="form-input">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="footer-email-input">Correo Electrónico de Contacto</label>
+                <input type="email" id="footer-email-input" class="form-input">
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="items-table-header">
+              <div>
+                <h3 class="card-title">Redes Sociales</h3>
+                <p class="card-desc">Enlaces a canales oficiales del evento.</p>
+              </div>
+              <button class="admin-btn admin-btn-secondary" onclick="addSocialNetwork()">+ Agregar Red</button>
+            </div>
+
+            <div id="footer-socials-list">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             PANEL: EXPORTADOR RAW HTML PARA WORDPRESS
+             ========================================== -->
+        <section class="admin-panel" id="panel-wordpress">
+          <div class="card" style="border-left: 4px solid #0073aa;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem;">
+              <div>
+                <h3 class="card-title" style="color:#0073aa;">⚡ Generador de Raw HTML para WordPress</h3>
+                <p class="card-desc" style="margin-bottom:0;">Compila automáticamente toda la Landing Page (los 8 módulos, tipografías, colores, componentes reactivos, modales y estilos) en un único bloque de código HTML listo para insertar en WordPress sin dependencias complejas.</p>
+              </div>
+              <span style="background:#0073aa; color:#fff; padding:0.25rem 0.65rem; border-radius:4px; font-weight:700; font-size:0.75rem;">WordPress Ready</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">Parámetros de Exportación y Conexión de Imágenes</h3>
+            
+            <!-- Explicación de Imágenes y CDN -->
+            <div style="background:rgba(56, 189, 248, 0.08); border-left:4px solid #0073aa; border-radius:6px; padding:12px 16px; margin-bottom:1.25rem;">
+              <h4 style="color:#0073aa; font-size:0.95rem; font-weight:700; margin-bottom:0.35rem;">💡 ¿Cómo se conectan las imágenes con WordPress?</h4>
+              <p style="font-size:0.875rem; color:#cbd5e1; line-height:1.5; margin:0;">
+                <strong>¡No necesitas volver a subir las imágenes a WordPress!</strong> Al publicar este CMS en un servidor (ej: <code>https://cms.tu-dominio.com</code>), ese servidor ya sirve tus imágenes en <code>/uploads/</code>. Al presionar <strong>"Usar URL de este CMS"</strong>, WordPress cargará las imágenes directamente desde aquí como si fuera un CDN, sin tocar la biblioteca de medios ni sufrir por carpetas de fecha (<code>/2026/10/</code>) o numeraciones de WordPress.
+              </p>
+            </div>
+
+            <!-- Alerta dinámica de Localhost -->
+            <div id="wp-localhost-warning" style="display:none; background:rgba(245, 158, 11, 0.12); border-left:4px solid #f59e0b; border-radius:6px; padding:12px 16px; margin-bottom:1.25rem;">
+              <h4 style="color:#f59e0b; font-size:0.925rem; font-weight:700; margin-bottom:0.35rem;">⚠️ Estás ejecutando en entorno local (localhost)</h4>
+              <p style="font-size:0.85rem; color:#cbd5e1; line-height:1.5; margin:0;">
+                Si pegas este código directamente en un WordPress en línea, otros usuarios en internet no podrán cargar las imágenes de tu máquina local (<code>http://localhost:3000/</code>). Para resolverlo fácilmente:
+                <br>• <strong>Opción A (Recomendada para pruebas rápidas sin servidor):</strong> Activa abajo la casilla <em>"Incrustar imágenes locales en Base64"</em> para que viajen integradas en el HTML.
+                <br>• <strong>Opción B (Recomendada en producción):</strong> Si alojarás este CMS en un subdominio o servidor público (ej: <code>https://cms.expansion.mx/uploads/</code>), escribe esa URL en el campo de prefijo superior.
+              </p>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group full-width">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem;">
+                  <label class="form-label" for="wp-asset-prefix" style="margin:0;">
+                    <span>URL Base / Servidor de Imágenes (Prefijo)</span>
+                  </label>
+                  <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+                    <button type="button" class="admin-btn admin-btn-secondary admin-btn-sm" onclick="setWpAssetPrefixMode('current-cms')" style="font-size:0.75rem; padding:3px 8px;">
+                      <span>⚡ Usar URL de este CMS</span>
+                    </button>
+                    <button type="button" class="admin-btn admin-btn-secondary admin-btn-sm" onclick="setWpAssetPrefixMode('static-folder')" style="font-size:0.75rem; padding:3px 8px;">
+                      <span>📁 Carpeta Estática</span>
+                    </button>
+                    <button type="button" class="admin-btn admin-btn-secondary admin-btn-sm" onclick="setWpAssetPrefixMode('relative')" style="font-size:0.75rem; padding:3px 8px;">
+                      <span>🔄 Relativo (/uploads/)</span>
+                    </button>
+                  </div>
+                </div>
+                <input type="text" id="wp-asset-prefix" class="form-input" placeholder="https://cms.midominio.com/uploads/" oninput="updateWpAssetPreview()">
+                
+                <!-- Live Preview of Resulting URL -->
+                <div id="wp-asset-preview-note" style="margin-top:0.6rem; font-size:0.8rem; font-family:monospace; color:#38bdf8; background:#0f172a; padding:8px 12px; border-radius:4px; border:1px solid #1e293b; display:flex; align-items:center; gap:0.5rem;">
+                  <span style="color:#94a3b8;">Ejemplo de URL en el HTML:</span>
+                  <span id="wp-sample-asset-url" style="word-break:break-all;">/uploads/1792383743425-El-negocio-de-alimentar.png</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-grid" style="margin-top:1rem;">
+              <div class="form-group">
+                <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.9rem; cursor:pointer;">
+                  <input type="checkbox" id="wp-opt-header" checked style="width:18px; height:18px;">
+                  <span><strong>Incluir Cabecera / Header</strong> (menú anclas interno)</span>
+                </label>
+              </div>
+              <div class="form-group">
+                <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.9rem; cursor:pointer;">
+                  <input type="checkbox" id="wp-opt-footer" checked style="width:18px; height:18px;">
+                  <span><strong>Incluir Pie de Página / Footer</strong> (redes sociales y copyright)</span>
+                </label>
+              </div>
+              <div class="form-group">
+                <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.9rem; cursor:pointer;">
+                  <input type="checkbox" id="wp-opt-scope-css" checked style="width:18px; height:18px;">
+                  <span><strong>Aislar Estilos CSS</strong> (previene sobreescrituras del tema de WordPress)</span>
+                </label>
+              </div>
+              <div class="form-group full-width" style="margin-top:0.25rem; background:rgba(30, 41, 59, 0.45); padding:10px 14px; border-radius:6px; border:1px solid #334155;">
+                <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.9rem; cursor:pointer;">
+                  <input type="checkbox" id="wp-opt-embed-base64" onchange="compileAndGenerateWordPressHtml()" style="width:18px; height:18px; accent-color:#0073aa;">
+                  <span><strong>📦 Incrustar imágenes locales en Base64 (Data URIs)</strong> — <span style="color:#94a3b8; font-size:0.825rem;">Autonomía 100%. Las imágenes viajan dentro del código HTML sin depender de ningún servidor activo.</span></span>
+                </label>
+              </div>
+            </div>
+
+            <div style="display:flex; gap:0.75rem; margin-top:1.5rem; flex-wrap:wrap;">
+              <button class="admin-btn admin-btn-primary" onclick="compileAndGenerateWordPressHtml()" style="background:#0073aa; border-color:#0073aa;">
+                <span>⚡ Compilar y Generar Código HTML</span>
+              </button>
+              <button class="admin-btn admin-btn-secondary" id="btn-copy-wp-code" onclick="copyWordPressCodeToClipboard()">
+                <span>📋 Copiar al Portapapeles</span>
+              </button>
+              <button class="admin-btn admin-btn-secondary" onclick="downloadWordPressHtmlFile()">
+                <span>💾 Descargar archivo .html</span>
+              </button>
+              <button class="admin-btn admin-btn-secondary" onclick="previewWordPressHtmlDirect()">
+                <span>👁️ Previsualizar en Pestaña Nueva</span>
+              </button>
+              <a href="/api/download-assets-zip" class="admin-btn admin-btn-secondary" title="Descarga todas las fotos y logos del Summit en un archivo .ZIP para respaldo o migración">
+                <span>📦 Descargar Imágenes en .ZIP</span>
+              </a>
+            </div>
+          </div>
+
+          <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+              <h3 class="card-title" style="margin:0;">Código HTML Compilado para WordPress</h3>
+              <span id="wp-code-stats" style="font-size:0.8rem; color:#64748b; font-weight:600;">Haz clic en "Compilar y Generar"</span>
+            </div>
+            <textarea id="wp-generated-code-textarea" class="form-textarea" style="height:320px; font-family:monospace; font-size:0.8rem; background:#0f172a; color:#e2e8f0; line-height:1.4;" readonly placeholder="Haz clic en 'Compilar y Generar Código HTML' para producir el bloque listo para WordPress..."></textarea>
+          </div>
+
+          <div class="card" style="background:#f0fdf4; border-color:#bbf7d0;">
+            <h4 style="color:#166534; font-size:0.95rem; font-weight:700; margin-bottom:0.5rem;">📖 Instrucciones de inserción en WordPress:</h4>
+            <ol style="margin-left:1.5rem; font-size:0.875rem; color:#14532d; line-height:1.7;">
+              <li>Copia el código generado haciendo clic en <strong>"📋 Copiar al Portapapeles"</strong>.</li>
+              <li>En el administrador de WordPress (Gutenberg), añade un bloque de <strong>"HTML Personalizado"</strong> (Custom HTML). Si usas Elementor, usa el widget <strong>"HTML"</strong>.</li>
+              <li>Pega el código completo y guarda los cambios o publica la página.</li>
+              <li>Si usas un prefijo de CDN o biblioteca de medios de WordPress, asegúrate de haber subido las imágenes en esa ruta.</li>
+            </ol>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ==========================================
+       MODALES DE EDICIÓN DEL CMS
+       ========================================== -->
+
+  <!-- 1. Modal Menú Header -->
+  <dialog class="admin-modal" id="admin-nav-modal">
+    <div class="admin-modal-header">
+      <h3>Elemento del Menú de Navegación</h3>
+      <button class="admin-btn admin-btn-secondary admin-btn-sm" onclick="closeDialog('admin-nav-modal')">&times;</button>
+    </div>
+    <div class="admin-modal-body">
+      <div class="form-group">
+        <label class="form-label" for="modal-nav-label">Texto Visible del Menú</label>
+        <input type="text" id="modal-nav-label" class="form-input" placeholder="Ej: Agenda">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="modal-nav-anchor">Ancla Interna o URL</label>
+        <input type="text" id="modal-nav-anchor" class="form-input" placeholder="#agenda, #hero, #speakers...">
+      </div>
+    </div>
+    <div class="admin-modal-footer">
+      <button class="admin-btn admin-btn-secondary" onclick="closeDialog('admin-nav-modal')">Cancelar</button>
+      <button class="admin-btn admin-btn-primary" onclick="saveNavItem()">Guardar Enlace</button>
+    </div>
+  </dialog>
+
+  <!-- 2. Modal Agenda (Ponencia) -->
+  <dialog class="admin-modal" id="admin-agenda-modal">
+    <div class="admin-modal-header">
+      <h3>Publicación de Ponencia (Agenda)</h3>
+      <button class="admin-btn admin-btn-secondary admin-btn-sm" onclick="closeDialog('admin-agenda-modal')">&times;</button>
+    </div>
+    <div class="admin-modal-body">
+      <div class="form-group">
+        <label class="form-label" for="modal-agenda-title">Título de la Ponencia</label>
+        <input type="text" id="modal-agenda-title" class="form-input" placeholder="Ej: Modelos Fundacionales y Agentes...">
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label" for="modal-agenda-time">Hora / Franja</label>
+          <input type="text" id="modal-agenda-time" class="form-input" placeholder="09:00 - 10:15 hrs">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="modal-agenda-category">Categoría</label>
+          <input type="text" id="modal-agenda-category" class="form-input" placeholder="Inteligencia Artificial">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="modal-agenda-desc">Descripción</label>
+        <textarea id="modal-agenda-desc" class="form-textarea" placeholder="Resumen detallado de la ponencia..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="modal-agenda-speakers">
+          <span>Ponente(s)</span>
+          <span class="hint">Nombres separados por coma</span>
+        </label>
+        <input type="text" id="modal-agenda-speakers" class="form-input" placeholder="Dra. Sofia Navarro, Ing. Mateo Valenzuela">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="modal-agenda-moderators">
+          <span>Moderador(es)</span>
+          <span class="hint">Nombres separados por coma</span>
+        </label>
+        <input type="text" id="modal-agenda-moderators" class="form-input" placeholder="Lic. Andrea Gómez">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Imagen de la Ponencia</label>
+        <div class="image-upload-box">
+          <div class="image-preview-wrap">
+            <img id="modal-agenda-img-preview" src="/uploads/agenda-1.jpg" alt="Preview" class="image-preview-thumb">
+          </div>
+          <div class="image-inputs-col" style="display:flex; flex-direction:column; gap:6px; width:100%;">
+            <input type="file" accept="image/*" onchange="handleImageUpload(this, 'modal-agenda-img-preview', null, null, 'modal-agenda-img-url')" class="form-input">
+            <input type="url" id="modal-agenda-img-url" class="form-input" placeholder="O pega una URL directa (https://...)" oninput="handleImageUrlInput(this, 'modal-agenda-img-preview')">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="admin-modal-footer">
+      <button class="admin-btn admin-btn-secondary" onclick="closeDialog('admin-agenda-modal')">Cancelar</button>
+      <button class="admin-btn admin-btn-primary" onclick="saveAgendaItem()">Guardar Ponencia</button>
+    </div>
+  </dialog>
+
+  <!-- 3. Modal Speaker (Ponente) -->
+  <dialog class="admin-modal" id="admin-speaker-modal">
+    <div class="admin-modal-header">
+      <h3>Ficha de Ponente (Speaker)</h3>
+      <button class="admin-btn admin-btn-secondary admin-btn-sm" onclick="closeDialog('admin-speaker-modal')">&times;</button>
+    </div>
+    <div class="admin-modal-body">
+      <div class="form-group">
+        <label class="form-label" for="modal-speaker-name">Nombre y Título</label>
+        <input type="text" id="modal-speaker-name" class="form-input" placeholder="Dra. Sofia Navarro">
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label" for="modal-speaker-role">Cargo / Especialidad</label>
+          <input type="text" id="modal-speaker-role" class="form-input" placeholder="VP de IA">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="modal-speaker-company">Empresa u Organización</label>
+          <input type="text" id="modal-speaker-company" class="form-input" placeholder="DeepMatrix Labs">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="modal-speaker-badge">Insignia / Rol</label>
+        <input type="text" id="modal-speaker-badge" class="form-input" placeholder="Keynote Speaker">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="modal-speaker-bio">Biografía Resumida</label>
+        <textarea id="modal-speaker-bio" class="form-textarea" placeholder="Trayectoria y logros..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Foto del Ponente</label>
+        <div class="image-upload-box">
+          <div class="image-preview-wrap">
+            <img id="modal-speaker-img-preview" src="/uploads/speaker-1.jpg" alt="Preview Speaker" class="image-preview-thumb">
+          </div>
+          <div class="image-inputs-col" style="display:flex; flex-direction:column; gap:6px; width:100%;">
+            <input type="file" accept="image/*" onchange="handleImageUpload(this, 'modal-speaker-img-preview', null, null, 'modal-speaker-img-url')" class="form-input">
+            <input type="url" id="modal-speaker-img-url" class="form-input" placeholder="O pega una URL directa (https://...)" oninput="handleImageUrlInput(this, 'modal-speaker-img-preview')">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="admin-modal-footer">
+      <button class="admin-btn admin-btn-secondary" onclick="closeDialog('admin-speaker-modal')">Cancelar</button>
+      <button class="admin-btn admin-btn-primary" onclick="saveSpeakerItem()">Guardar Ponente</button>
+    </div>
+  </dialog>
+
+  <!-- 4. Modal Broadcast Live -->
+  <dialog class="admin-modal" id="admin-broadcast-modal">
+    <div class="admin-modal-header">
+      <h3>Entrada de Broadcast (Transmisión en Vivo)</h3>
+      <button class="admin-btn admin-btn-secondary admin-btn-sm" onclick="closeDialog('admin-broadcast-modal')">&times;</button>
+    </div>
+    <div class="admin-modal-body">
+      <div class="form-group">
+        <label class="form-label" for="modal-bc-title">Título de la Transmisión</label>
+        <input type="text" id="modal-bc-title" class="form-input" placeholder="Sala A: Apertura Oficial">
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label" for="modal-bc-time">Hora / Estado</label>
+          <input type="text" id="modal-bc-time" class="form-input" placeholder="15 Oct • 09:00 hrs (En Vivo)">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="modal-bc-youtube">
+            <span>ID de YouTube Live</span>
+            <span class="hint">Ej: 5qap5aO4i9A o URL</span>
+          </label>
+          <input type="text" id="modal-bc-youtube" class="form-input" placeholder="5qap5aO4i9A">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="modal-bc-desc">
+          <span>Descripción (Opcional)</span>
+        </label>
+        <textarea id="modal-bc-desc" class="form-textarea" placeholder="Detalles de la transmisión..."></textarea>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label" for="modal-bc-speakers">Ponentes</label>
+          <input type="text" id="modal-bc-speakers" class="form-input" placeholder="Dra. Sofia Navarro">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="modal-bc-moderators">Moderadores</label>
+          <input type="text" id="modal-bc-moderators" class="form-input" placeholder="Lic. Andrea Gómez">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Miniatura / Imagen de Portada</label>
+        <div class="image-upload-box">
+          <div class="image-preview-wrap">
+            <img id="modal-bc-img-preview" src="/uploads/broadcast-1.jpg" alt="Preview Broadcast" class="image-preview-thumb">
+          </div>
+          <div class="image-inputs-col" style="display:flex; flex-direction:column; gap:6px; width:100%;">
+            <input type="file" accept="image/*" onchange="handleImageUpload(this, 'modal-bc-img-preview', null, null, 'modal-bc-img-url')" class="form-input">
+            <input type="url" id="modal-bc-img-url" class="form-input" placeholder="O pega una URL directa (https://...)" oninput="handleImageUrlInput(this, 'modal-bc-img-preview')">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="admin-modal-footer">
+      <button class="admin-btn admin-btn-secondary" onclick="closeDialog('admin-broadcast-modal')">Cancelar</button>
+      <button class="admin-btn admin-btn-primary" onclick="saveBroadcastItem()">Guardar Transmisión</button>
+    </div>
+  </dialog>
+
+  <!-- 5. Modal FAQ -->
+  <dialog class="admin-modal" id="admin-faq-modal">
+    <div class="admin-modal-header">
+      <h3>Pregunta Frecuente</h3>
+      <button class="admin-btn admin-btn-secondary admin-btn-sm" onclick="closeDialog('admin-faq-modal')">&times;</button>
+    </div>
+    <div class="admin-modal-body">
+      <div class="form-group">
+        <label class="form-label" for="modal-faq-question">Pregunta</label>
+        <input type="text" id="modal-faq-question" class="form-input" placeholder="¿Cómo accedo al evento?">
+      </div>
+      <div class="form-group">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem;">
+          <label class="form-label" for="modal-faq-answer" style="margin:0;">Respuesta</label>
+          <button type="button" class="admin-btn admin-btn-secondary admin-btn-sm" onclick="insertLinkIntoFaqAnswer()">🔗 Insertar Enlace</button>
+        </div>
+        <textarea id="modal-faq-answer" class="form-textarea" style="min-height:120px;" placeholder="Puedes ingresar texto con enlaces como [nuestra agenda](#agenda) o [sitio web](https://...)."></textarea>
+      </div>
+    </div>
+    <div class="admin-modal-footer">
+      <button class="admin-btn admin-btn-secondary" onclick="closeDialog('admin-faq-modal')">Cancelar</button>
+      <button class="admin-btn admin-btn-primary" onclick="saveFaqItem()">Guardar Pregunta</button>
+    </div>
+  </dialog>
+
+  <!-- 6. Modal Probar Video Live -->
+  <dialog class="admin-modal" id="admin-video-test-modal" style="max-width:800px;">
+    <div class="admin-modal-header">
+      <h3>Prueba de Reproducción YouTube Live</h3>
+      <button class="admin-btn admin-btn-secondary admin-btn-sm" onclick="closeDialog('admin-video-test-modal')">&times;</button>
+    </div>
+    <div class="admin-modal-body" style="padding:0; aspect-ratio:16/9; background:#000;">
+      <iframe id="admin-test-iframe" style="width:100%; height:100%; border:none;" allowfullscreen></iframe>
+    </div>
+  </dialog>
+
+  <!-- 7. Modal Live Preview Iframe -->
+  <dialog class="preview-modal" id="live-preview-modal">
+    <div class="admin-modal-header" style="height:50px;">
+      <h3>Vista Previa en Vivo de la Landing Page</h3>
+      <button class="admin-btn admin-btn-secondary admin-btn-sm" onclick="closeDialog('live-preview-modal')">&times; Cerrar</button>
+    </div>
+    <iframe id="live-preview-iframe" class="preview-iframe" src=""></iframe>
+  </dialog>
+
+  <!-- Toast Notification -->
+  <div id="admin-toast" class="toast-notice">Mensaje del sistema</div>
+
+  <!-- Admin Script -->
+  <script src="/js/admin.js"></script>
+</body>
+</html>
