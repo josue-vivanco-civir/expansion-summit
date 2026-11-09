@@ -4,6 +4,7 @@
  */
 
 let summitData = null;
+let currentUser = null;
 let currentEditingItem = null;
 let currentEditingType = null;
 
@@ -12,9 +13,15 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function initAdmin() {
+  const isAuth = await checkAuthSession();
+  if (!isAuth) return; // Will redirect to /login
+
   setupSidebarNavigation();
   setupGlobalActions();
   await loadSummitData();
+  if (currentUser?.role === 'admin') {
+    loadUsersList();
+  }
 }
 
 /**
@@ -163,7 +170,7 @@ function populateAllForms() {
   setVal('seo-title', seo.metaTitle || seo.title || '');
   setVal('seo-description', seo.metaDescription || seo.description || '');
   setVal('seo-keywords', seo.keywords || '');
-  setVal('seo-robots', seo.metaRobots || seo.robots || 'index, follow');
+  setVal('seo-robots', seo.metaRobots || seo.robots || 'noindex, nofollow');
   setVal('seo-canonical', seo.canonicalUrl || seo.canonical || '');
   setVal('seo-og-title', seo.ogTitle || '');
   setVal('seo-og-url', seo.ogUrl || seo.canonicalUrl || seo.canonical || '');
@@ -309,7 +316,7 @@ function extractAllFormData() {
     metaTitle: getVal('seo-title'),
     metaDescription: getVal('seo-description'),
     keywords: getVal('seo-keywords'),
-    metaRobots: getVal('seo-robots') || 'index, follow',
+    metaRobots: getVal('seo-robots') || 'noindex, nofollow',
     canonicalUrl: getVal('seo-canonical'),
     ogTitle: getVal('seo-og-title') || getVal('seo-title'),
     ogDescription: getVal('seo-og-description') || getVal('seo-description'),
@@ -962,7 +969,7 @@ async function uploadImageToServer(filename, dataUrl, previewImg) {
     }
   } catch (err) {
     console.error(err);
-    showToast('Error al subir imagen al servidor', 'error');
+    showToast(err && err.message ? `Error al subir: ${err.message}` : 'Error al subir imagen al servidor', 'error');
     // Fallback: keep local dataUrl for preview
     if (previewImg) previewImg.src = dataUrl;
     return dataUrl;
@@ -2106,7 +2113,7 @@ window.compileAndGenerateWordPressHtml = async function() {
      <title>${escapeHtml(seoData.metaTitle || app.eventTitle || 'Summit Innovation 2026')}</title>
      <meta name="description" content="${escapeHtml(seoData.metaDescription || '')}">
      <meta name="keywords" content="${escapeHtml(seoData.keywords || '')}">
-     <meta name="robots" content="${escapeHtml(seoData.metaRobots || 'index, follow')}">
+     <meta name="robots" content="${escapeHtml(seoData.metaRobots || 'noindex, nofollow')}">
      <link rel="canonical" href="${escapeHtml(seoData.canonicalUrl || '')}">
      <meta property="og:type" content="${escapeHtml(seoData.ogType || 'website')}">
      <meta property="og:title" content="${escapeHtml(seoData.ogTitle || seoData.metaTitle || '')}">
@@ -2246,3 +2253,350 @@ window.previewWordPressHtmlDirect = function() {
   window.open(url, '_blank');
 };
 
+// ==========================================
+// 12. AUTHENTICATION & USER MANAGEMENT
+// ==========================================
+
+async function checkAuthSession() {
+  try {
+    const res = await fetch('/api/auth/me');
+    if (!res.ok) throw new Error('Error al verificar sesión');
+    const data = await res.json();
+    if (data.authenticated && data.user) {
+      currentUser = data.user;
+      renderUserUI(currentUser);
+      applyRoleRestrictions(currentUser);
+      return true;
+    } else {
+      window.location.href = '/login';
+      return false;
+    }
+  } catch (err) {
+    console.warn('Verificación de sesión falló:', err);
+    window.location.href = '/login';
+    return false;
+  }
+}
+
+function renderUserUI(user) {
+  if (!user) return;
+  const nameEl = document.getElementById('user-display-name');
+  const userEl = document.getElementById('user-display-username');
+  const roleEl = document.getElementById('user-display-role');
+  const iconEl = document.getElementById('user-badge-icon');
+  const topNameEl = document.getElementById('topbar-user-name');
+  const topRoleEl = document.getElementById('topbar-user-role-badge');
+
+  const isAdmin = user.role === 'admin';
+  const roleText = isAdmin ? 'ADMIN' : 'EDITOR';
+  const roleBadgeClass = isAdmin ? 'role-badge-admin' : 'role-badge-editor';
+  const icon = isAdmin ? '👑' : '✍️';
+
+  if (nameEl) nameEl.textContent = user.name || user.username;
+  if (userEl) userEl.textContent = `@${user.username}`;
+  if (roleEl) {
+    roleEl.textContent = roleText;
+    roleEl.className = `user-role-badge ${roleBadgeClass}`;
+  }
+  if (iconEl) iconEl.textContent = icon;
+
+  if (topNameEl) topNameEl.textContent = user.name || user.username;
+  if (topRoleEl) {
+    topRoleEl.textContent = roleText;
+    topRoleEl.className = `user-role-badge ${roleBadgeClass}`;
+  }
+}
+
+function applyRoleRestrictions(user) {
+  const isEditor = user.role === 'editor';
+  const usersTab = document.getElementById('sidebar-tab-users');
+
+  if (usersTab) {
+    usersTab.style.display = isEditor ? 'none' : 'flex';
+  }
+
+  // Restrictions for editor profile
+  if (isEditor) {
+    // Custom CSS restriction: readonly with notice
+    const cssTextarea = document.getElementById('appearance-custom-css');
+    if (cssTextarea && !document.getElementById('editor-css-notice')) {
+      const notice = document.createElement('div');
+      notice.id = 'editor-css-notice';
+      notice.className = 'editor-restricted-notice';
+      notice.innerHTML = '🔒 <strong>Modo Editor:</strong> La edición de código Custom CSS está reservada para el perfil Administrador.';
+      cssTextarea.parentNode.insertBefore(notice, cssTextarea);
+      cssTextarea.disabled = true;
+      cssTextarea.style.opacity = '0.6';
+    }
+
+    // Hide preset template trigger for editors to prevent accidental theme overwrites
+    const presetButtons = document.querySelectorAll("button[onclick*='loadPreset']");
+    presetButtons.forEach(btn => {
+      btn.style.display = 'none';
+    });
+  }
+}
+
+window.handleLogout = async function() {
+  if (!confirm('¿Seguro que deseas cerrar sesión?')) return;
+  try {
+    await fetch('/api/auth/logout', { method: 'POST' });
+  } catch (e) {}
+  localStorage.removeItem('summit_auth_token');
+  localStorage.removeItem('summit_auth_user');
+  window.location.href = '/login';
+};
+
+window.openChangePasswordModal = function() {
+  const alertEl = document.getElementById('change-pw-alert');
+  if (alertEl) alertEl.style.display = 'none';
+  const curEl = document.getElementById('pw-current');
+  const newEl = document.getElementById('pw-new');
+  const confEl = document.getElementById('pw-confirm');
+  if (curEl) curEl.value = '';
+  if (newEl) newEl.value = '';
+  if (confEl) confEl.value = '';
+  openDialog('admin-change-password-modal');
+};
+
+window.submitChangePassword = async function() {
+  const alertEl = document.getElementById('change-pw-alert');
+  const oldPassword = document.getElementById('pw-current')?.value || '';
+  const newPassword = document.getElementById('pw-new')?.value || '';
+  const confirmPassword = document.getElementById('pw-confirm')?.value || '';
+
+  const showAlert = (msg, isError = true) => {
+    if (!alertEl) return;
+    alertEl.style.display = 'block';
+    alertEl.style.background = isError ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)';
+    alertEl.style.border = isError ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid rgba(16, 185, 129, 0.4)';
+    alertEl.style.color = isError ? '#fca5a5' : '#6ee7b7';
+    alertEl.textContent = msg;
+  };
+
+  if (!oldPassword) return showAlert('Ingresa tu contraseña actual');
+  if (!newPassword || newPassword.length < 10) return showAlert('La nueva contraseña debe tener al menos 10 caracteres');
+  if (newPassword !== confirmPassword) return showAlert('La confirmación de contraseña no coincide');
+
+  try {
+    const res = await fetch('/api/auth/change-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ oldPassword, newPassword })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      showAlert('¡Contraseña actualizada exitosamente!', false);
+      setTimeout(() => {
+        closeDialog('admin-change-password-modal');
+        showToast('Contraseña actualizada con éxito', 'success');
+      }, 1200);
+    } else {
+      showAlert(data.error || 'No se pudo actualizar la contraseña');
+    }
+  } catch (err) {
+    showAlert('Error de conexión al servidor');
+  }
+};
+
+window.loadUsersList = async function() {
+  const container = document.getElementById('users-table-container');
+  if (!container) return;
+
+  try {
+    const res = await fetch('/api/auth/users');
+    if (!res.ok) throw new Error('Error al consultar usuarios');
+    const data = await res.json();
+    const users = data.users || [];
+
+    if (!users.length) {
+      container.innerHTML = '<div style="text-align:center; padding:1.5rem; color:#94a3b8;">No se encontraron usuarios.</div>';
+      return;
+    }
+
+    container.innerHTML = `
+      <div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; font-size:0.875rem; text-align:left;">
+          <thead>
+            <tr style="border-bottom:1px solid #334155; color:#94a3b8; font-size:0.75rem; text-transform:uppercase;">
+              <th style="padding:10px 12px;">Usuario</th>
+              <th style="padding:10px 12px;">Nombre</th>
+              <th style="padding:10px 12px;">Perfil / Rol</th>
+              <th style="padding:10px 12px;">Fecha de Creación</th>
+              <th style="padding:10px 12px; text-align:right;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${users.map(u => {
+              const isAdmin = u.role === 'admin';
+              const roleBadge = isAdmin
+                ? '<span class="user-role-badge role-badge-admin">👑 Admin</span>'
+                : '<span class="user-role-badge role-badge-editor">✍️ Editor</span>';
+              const isMe = currentUser && currentUser.id === u.id;
+              const dateStr = u.createdAt ? new Date(u.createdAt).toLocaleDateString('es-MX', { year:'numeric', month:'short', day:'numeric' }) : '-';
+
+              return `
+                <tr style="border-bottom:1px solid rgba(255,255,255,0.05); color:#e2e8f0;">
+                  <td style="padding:12px; font-weight:600; font-family:monospace; color:#38bdf8;">
+                    @${escapeHtml(u.username)} ${isMe ? '<span style="font-size:0.7rem; color:#fcea10;">(Tú)</span>' : ''}
+                  </td>
+                  <td style="padding:12px;">${escapeHtml(u.name || '')}</td>
+                  <td style="padding:12px;">${roleBadge}</td>
+                  <td style="padding:12px; color:#94a3b8; font-size:0.8rem;">${dateStr}</td>
+                  <td style="padding:12px; text-align:right;">
+                    ${isMe ? `
+                      <span style="font-size:0.75rem; color:#64748b;">Tu cuenta</span>
+                    ` : `
+                      <button type="button" class="admin-btn admin-btn-secondary admin-btn-sm" onclick="openResetPasswordModal('${escapeHtml(u.id)}', '${escapeHtml(u.username)}')" style="padding:3px 8px; font-size:0.75rem; margin-right:4px;">
+                        <span>🔑 Contraseña</span>
+                      </button>
+                      <button type="button" class="admin-btn admin-btn-danger admin-btn-sm" onclick="deleteUserItem('${escapeHtml(u.id)}', '${escapeHtml(u.username)}')" style="padding:3px 8px; font-size:0.75rem;">
+                        <span>🗑️ Eliminar</span>
+                      </button>
+                    `}
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  } catch (err) {
+    container.innerHTML = `<div style="text-align:center; padding:1.5rem; color:#f87171;">Error al cargar la lista de usuarios.</div>`;
+  }
+};
+
+window.openCreateUserModal = function() {
+  const alertEl = document.getElementById('create-user-alert');
+  if (alertEl) alertEl.style.display = 'none';
+  const nameEl = document.getElementById('new-user-name');
+  const userEl = document.getElementById('new-user-username');
+  const roleEl = document.getElementById('new-user-role');
+  const passEl = document.getElementById('new-user-password');
+  if (nameEl) nameEl.value = '';
+  if (userEl) userEl.value = '';
+  if (roleEl) roleEl.value = 'editor';
+  if (passEl) passEl.value = '';
+  openDialog('admin-create-user-modal');
+};
+
+window.submitCreateUser = async function() {
+  const alertEl = document.getElementById('create-user-alert');
+  const name = (document.getElementById('new-user-name')?.value || '').trim();
+  const username = (document.getElementById('new-user-username')?.value || '').trim();
+  const role = document.getElementById('new-user-role')?.value || 'editor';
+  const password = document.getElementById('new-user-password')?.value || '';
+
+  const showAlert = (msg) => {
+    if (!alertEl) return;
+    alertEl.style.display = 'block';
+    alertEl.textContent = msg;
+  };
+
+  if (!name) return showAlert('Ingresa el nombre del usuario');
+  if (!username || username.length < 3) return showAlert('El nombre de usuario debe tener al menos 3 caracteres');
+  if (!password || password.length < 10) return showAlert('La contraseña debe tener al menos 10 caracteres');
+
+  try {
+    const res = await fetch('/api/auth/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, username, role, password })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      closeDialog('admin-create-user-modal');
+      showToast(`Usuario @${username} creado exitosamente`, 'success');
+      loadUsersList();
+    } else {
+      showAlert(data.error || 'No se pudo crear el usuario');
+    }
+  } catch (err) {
+    showAlert('Error de conexión al servidor');
+  }
+};
+
+window.deleteUserItem = async function(userId, username) {
+  if (!confirm(`¿Estás seguro de que deseas eliminar la cuenta de @${username}? Esta acción no se puede deshacer.`)) {
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/auth/users', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      showToast(`Usuario @${username} eliminado`, 'success');
+      loadUsersList();
+    } else {
+      alert(data.error || 'No se pudo eliminar el usuario');
+    }
+  } catch (err) {
+    alert('Error de conexión al servidor');
+  }
+};
+
+
+
+window.openResetPasswordModal = function(userId, username) {
+  const alertEl = document.getElementById('reset-pw-alert');
+  if (alertEl) alertEl.style.display = 'none';
+  document.getElementById('reset-pw-userid').value = userId;
+  document.getElementById('reset-pw-username').textContent = '@' + username;
+  document.getElementById('reset-pw-new').value = '';
+  document.getElementById('reset-pw-confirm').value = '';
+  openDialog('admin-reset-password-modal');
+};
+
+window.submitResetPassword = async function() {
+  const alertEl = document.getElementById('reset-pw-alert');
+  const userId = document.getElementById('reset-pw-userid').value;
+  const newPassword = document.getElementById('reset-pw-new').value || '';
+  const confirmPassword = document.getElementById('reset-pw-confirm').value || '';
+  const showAlert = (msg) => {
+    if (!alertEl) return;
+    alertEl.style.display = 'block';
+    alertEl.textContent = msg;
+  };
+
+  if (newPassword.length < 10) return showAlert('La contraseña debe tener al menos 10 caracteres');
+  if (newPassword !== confirmPassword) return showAlert('La confirmación no coincide');
+
+  try {
+    const res = await fetch('/api/auth/users/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, newPassword })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      closeDialog('admin-reset-password-modal');
+      showToast('Contraseña restablecida', 'success');
+    } else {
+      showAlert(data.error || 'No se pudo restablecer la contraseña');
+    }
+  } catch (err) {
+    showAlert('Error de conexión al servidor');
+  }
+};
+
+// Si la sesión expira mientras se edita, cualquier llamada a la API devuelve 401:
+// se avisa y se redirige al login en lugar de fallar en silencio.
+(function installSessionGuard() {
+  const originalFetch = window.fetch.bind(window);
+  let redirecting = false;
+  window.fetch = async function(input, init) {
+    const res = await originalFetch(input, init);
+    const url = typeof input === 'string' ? input : (input && input.url) || '';
+    if (res.status === 401 && url.startsWith('/api/') && !url.startsWith('/api/auth/login') && !redirecting) {
+      redirecting = true;
+      alert('Tu sesión expiró. Vuelve a iniciar sesión (los cambios no guardados se perderán).');
+      window.location.href = '/login?next=' + encodeURIComponent('/admin');
+    }
+    return res;
+  };
+})();

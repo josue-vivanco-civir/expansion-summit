@@ -1,16 +1,18 @@
 FROM node:18-alpine
 
+# zip se usa para descargar el paquete de assets
+RUN apk add --no-cache zip
+
 WORKDIR /app
-
-# Copy package files
 COPY package.json ./
-
-# Copy project files
 COPY . .
 
-# Expose port (Render will override via PORT env var)
+# El proceso no corre como root
+RUN chown -R node:node /app
+USER node
+
 EXPOSE 3000
 ENV PORT=3000
+ENV NODE_ENV=production
 
-# Start server
 CMD ["node", "server.js"]

@@ -1,0 +1,12 @@
+[
+  {
+    "id": "usr_e60dbbf6-1cef-4b7b-9cc4-139e1de65b22",
+    "username": "admin",
+    "name": "Administrador Principal",
+    "role": "admin",
+    "salt": "f1b06be652c00d9445d5ef05d82d3711",
+    "iterations": 210000,
+    "passwordHash": "1e4b00803312a6375cafd83b6917bd7e3a17828a4af2498ffd8580029cacf67bb3025ce2f1ef0c3560161261e6fe7141eadd5b1bc062180b83a5e47b2b79b91d",
+    "createdAt": "2026-11-09T23:02:16.687Z"
+  }
+]

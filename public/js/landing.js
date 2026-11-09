@@ -141,7 +141,7 @@ function applySeo(seoData) {
 
   const title = seoData.metaTitle || seoData.title || '';
   const desc = seoData.metaDescription || seoData.description || '';
-  const robots = seoData.metaRobots || seoData.robots || 'index, follow';
+  const robots = seoData.metaRobots || seoData.robots || 'noindex, nofollow';
   const canonical = seoData.canonicalUrl || seoData.canonical || window.location.href;
 
   if (title) {

@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow, noarchive">
   <title>CMS Summit Panel de Control</title>
   <link rel="stylesheet" href="/css/admin.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -35,6 +36,10 @@
         <button class="sidebar-tab-btn" data-target="panel-seo">
           <span class="tab-icon">🔍</span>
           <span class="tab-label">SEO y Metadatos</span>
+        </button>
+        <button class="sidebar-tab-btn" data-target="panel-users" id="sidebar-tab-users" style="display:none;">
+          <span class="tab-icon">👥</span>
+          <span class="tab-label">Usuarios y Roles</span>
         </button>
 
         <div class="nav-section-label">Secciones Landing</div>
@@ -90,10 +95,32 @@
         <button class="admin-btn admin-btn-secondary admin-btn-sm" id="export-json-btn">
           <span>💾 Exportar Respaldo</span>
         </button>
-        <label class="admin-btn admin-btn-secondary admin-btn-sm" style="cursor:pointer; justify-content:center;">
+        <label class="admin-btn admin-btn-secondary admin-btn-sm" id="import-json-btn-wrap" style="cursor:pointer; justify-content:center;">
           <span>📂 Importar Respaldo</span>
           <input type="file" id="import-json-input" accept=".json" style="display:none;">
         </label>
+
+        <!-- Tarjeta de Usuario Activo en Sidebar -->
+        <div class="sidebar-user-card" id="sidebar-user-card" style="margin-top: 0.75rem; padding: 10px 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 6px;">
+            <div style="display:flex; align-items:center; gap: 8px; overflow:hidden;">
+              <span style="font-size: 1.15rem;" id="user-badge-icon">👑</span>
+              <div style="overflow:hidden;">
+                <div id="user-display-name" style="font-size:0.8rem; font-weight:700; color:#fff; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">Cargando...</div>
+                <div id="user-display-username" style="font-size:0.7rem; color:#94a3b8; font-family:monospace;">@user</div>
+              </div>
+            </div>
+            <span id="user-display-role" class="user-role-badge role-badge-admin">ADMIN</span>
+          </div>
+          <div style="display:flex; gap: 6px; margin-top: 8px;">
+            <button type="button" class="admin-btn admin-btn-secondary admin-btn-sm" style="flex:1; font-size:0.72rem; padding: 4px 6px;" onclick="openChangePasswordModal()" title="Cambiar mi contraseña">
+              <span>🔑 Clave</span>
+            </button>
+            <button type="button" class="admin-btn admin-btn-secondary admin-btn-sm" style="flex:1; font-size:0.72rem; padding: 4px 6px; color:#fca5a5; border-color:rgba(239,68,68,0.3);" onclick="handleLogout()" title="Cerrar Sesión">
+              <span>🚪 Salir</span>
+            </button>
+          </div>
+        </div>
       </div>
     </aside>
 
@@ -106,6 +133,12 @@
           <span class="topbar-subtitle">Gestiona contenidos y diseño del Summit en tiempo real</span>
         </div>
         <div class="topbar-actions">
+          <!-- User status pill in topbar -->
+          <div class="user-topbar-pill" id="topbar-user-pill" style="display:flex; align-items:center; gap:8px; background:#1e293b; padding:4px 12px; border-radius:99px; border:1px solid #334155; font-size:0.8rem;">
+            <span id="topbar-user-role-badge" class="user-role-badge role-badge-admin">ADMIN</span>
+            <span id="topbar-user-name" style="color:#e2e8f0; font-weight:600;">...</span>
+          </div>
+
           <button class="admin-btn" style="background:#0073aa; color:#ffffff; font-weight:700;" onclick="openWpGeneratorModal()">
             <span>⚡ Raw HTML WordPress</span>
           </button>
@@ -512,10 +545,10 @@
               <div class="form-group">
                 <label class="form-label" for="seo-robots">Directiva Meta Robots</label>
                 <select id="seo-robots" class="form-select">
-                  <option value="index, follow">index, follow (Permitir indexación y seguir enlaces - Recomendado)</option>
+                  <option value="noindex, nofollow" selected>noindex, nofollow (Privado / Oculto a buscadores - Recomendado)</option>
                   <option value="noindex, follow">noindex, follow (No indexar en Google pero seguir enlaces)</option>
                   <option value="index, nofollow">index, nofollow (Indexar pero no seguir enlaces)</option>
-                  <option value="noindex, nofollow">noindex, nofollow (Privado / Oculto a buscadores)</option>
+                  <option value="index, follow">index, follow (Permitir indexación y seguir enlaces)</option>
                 </select>
               </div>
 
@@ -617,6 +650,79 @@
             </div>
           </div>
         </section>
+
+        <!-- ==========================================
+             PANEL: GESTIÓN DE USUARIOS Y ROLES (ADMIN ONLY)
+             ========================================== -->
+        <section class="admin-panel" id="panel-users">
+          <div class="card" style="border-left: 4px solid #a855f7;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.5rem;">
+              <div>
+                <h3 class="card-title" style="color:#c084fc;">👥 Gestión de Usuarios y Permisos</h3>
+                <p class="card-desc" style="margin-bottom:0;">
+                  Administra las cuentas con acceso al CMS de Summit. Asigna perfiles de <strong>Administrador</strong> (control total y ajustes avanzados) o <strong>Editor</strong> (gestión ágil de contenidos, agenda, ponentes y exportaciones).
+                </p>
+              </div>
+              <button class="admin-btn admin-btn-primary" onclick="openCreateUserModal()">+ Nuevo Usuario</button>
+            </div>
+          </div>
+
+          <!-- Tabla de Perfiles y Explicación -->
+          <div class="card">
+            <h3 class="card-title">Matriz de Privilegios por Perfil</h3>
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:16px; margin-top:10px;">
+              <div style="background:#1e293b; border:1px solid #334155; border-radius:8px; padding:14px;">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                  <span class="user-role-badge role-badge-admin">👑 ADMINISTRADOR</span>
+                  <strong style="color:#fff; font-size:0.9rem;">Acceso Total</strong>
+                </div>
+                <ul style="font-size:0.8rem; color:#cbd5e1; margin-left:1.2rem; line-height:1.6;">
+                  <li>Edición completa de todos los módulos y textos</li>
+                  <li>Inyección y edición de <strong>Custom CSS Override</strong></li>
+                  <li>Configuración de Metadatos SEO y Robots</li>
+                  <li>Reordenamiento dinámico de secciones</li>
+                  <li>Gestión de usuarios y creación de editores</li>
+                  <li>Restablecimiento de fábrica y carga de plantillas</li>
+                </ul>
+              </div>
+
+              <div style="background:#1e293b; border:1px solid #334155; border-radius:8px; padding:14px;">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                  <span class="user-role-badge role-badge-editor">✍️ EDITOR</span>
+                  <strong style="color:#fff; font-size:0.9rem;">Acceso Editorial</strong>
+                </div>
+                <ul style="font-size:0.8rem; color:#cbd5e1; margin-left:1.2rem; line-height:1.6;">
+                  <li>Edición de ponencias, horarios y categorías de Agenda</li>
+                  <li>Alta y modificación de Ponentes (fotos, bios)</li>
+                  <li>Gestión de Broadcast y slider de transmisiones en vivo</li>
+                  <li>Gestión de Patrocinadores (Desktop y Mobile)</li>
+                  <li>Preguntas frecuentes (FAQ) y Footer</li>
+                  <li>Subida de imágenes y compilación Raw HTML para WordPress</li>
+                  <li><em>Restringido de: Gestión de usuarios, Custom CSS y Factory Reset</em></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Listado de Usuarios Activos -->
+          <div class="card">
+            <div class="items-table-header">
+              <div>
+                <h3 class="card-title">Cuentas Registradas en el Sistema</h3>
+                <p class="card-desc">Usuarios que tienen permiso para acceder a este panel de administración.</p>
+              </div>
+              <button class="admin-btn admin-btn-secondary admin-btn-sm" onclick="loadUsersList()">🔄 Actualizar Lista</button>
+            </div>
+
+            <div id="users-table-container">
+              <div style="text-align:center; padding:2rem; color:#94a3b8;">Cargando usuarios...</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             PANEL: 1. HEADER Y MENÚ
+             ========================================== -->
         <section class="admin-panel" id="panel-header">
           <div class="card">
             <div class="items-table-header">
@@ -1469,6 +1575,104 @@
       <button class="admin-btn admin-btn-secondary admin-btn-sm" onclick="closeDialog('live-preview-modal')">&times; Cerrar</button>
     </div>
     <iframe id="live-preview-iframe" class="preview-iframe" src=""></iframe>
+  </dialog>
+
+  <!-- 8. Modal Crear Nuevo Usuario (Admin Only) -->
+  <dialog class="admin-modal" id="admin-create-user-modal">
+    <div class="admin-modal-header">
+      <h3>Crear Nuevo Usuario del CMS</h3>
+      <button class="admin-btn admin-btn-secondary admin-btn-sm" onclick="closeDialog('admin-create-user-modal')">&times;</button>
+    </div>
+    <div class="admin-modal-body">
+      <div id="create-user-alert" class="alert-box alert-error" style="display:none; margin-bottom:1rem; padding:8px 12px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); color:#fca5a5; border-radius:6px; font-size:0.85rem;"></div>
+
+      <div class="form-group">
+        <label class="form-label" for="new-user-name">Nombre Completo</label>
+        <input type="text" id="new-user-name" class="form-input" placeholder="Ej: Diana Reyes">
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label" for="new-user-username">Nombre de Usuario (Login)</label>
+          <input type="text" id="new-user-username" class="form-input" placeholder="ej: dreyes">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="new-user-role">Perfil / Rol</label>
+          <select id="new-user-role" class="form-select">
+            <option value="editor" selected>Editor (Contenidos, Agenda, Ponentes, Exportar)</option>
+            <option value="admin">Administrador (Control Total &amp; Usuarios)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="new-user-password">Contraseña Inicial</label>
+        <input type="password" id="new-user-password" class="form-input" placeholder="Mín. 10 caracteres" autocomplete="new-password">
+        <small style="display:block; margin-top:4px; color:#94a3b8; font-size:0.75rem;">Mínimo 10 caracteres y al menos 3 de: minúsculas, mayúsculas, números, símbolos.</small>
+      </div>
+    </div>
+    <div class="admin-modal-footer">
+      <button class="admin-btn admin-btn-secondary" onclick="closeDialog('admin-create-user-modal')">Cancelar</button>
+      <button class="admin-btn admin-btn-primary" onclick="submitCreateUser()">Crear Usuario</button>
+    </div>
+  </dialog>
+
+  <!-- 9. Modal Cambiar Mi Contraseña -->
+  <dialog class="admin-modal" id="admin-change-password-modal">
+    <div class="admin-modal-header">
+      <h3>Cambiar Mi Contraseña</h3>
+      <button class="admin-btn admin-btn-secondary admin-btn-sm" onclick="closeDialog('admin-change-password-modal')">&times;</button>
+    </div>
+    <div class="admin-modal-body">
+      <div id="change-pw-alert" style="display:none; margin-bottom:1rem; padding:8px 12px; border-radius:6px; font-size:0.85rem;"></div>
+
+      <div class="form-group">
+        <label class="form-label" for="pw-current">Contraseña Actual</label>
+        <input type="password" id="pw-current" class="form-input" placeholder="Tu contraseña actual" autocomplete="current-password">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="pw-new">Nueva Contraseña</label>
+        <input type="password" id="pw-new" class="form-input" placeholder="Mín. 10 caracteres" autocomplete="new-password">
+        <small style="display:block; margin-top:4px; color:#94a3b8; font-size:0.75rem;">Mínimo 10 caracteres y al menos 3 de: minúsculas, mayúsculas, números, símbolos.</small>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="pw-confirm">Confirmar Nueva Contraseña</label>
+        <input type="password" id="pw-confirm" class="form-input" placeholder="Repite la nueva contraseña" autocomplete="new-password">
+      </div>
+    </div>
+    <div class="admin-modal-footer">
+      <button class="admin-btn admin-btn-secondary" onclick="closeDialog('admin-change-password-modal')">Cancelar</button>
+      <button class="admin-btn admin-btn-primary" onclick="submitChangePassword()">Actualizar Contraseña</button>
+    </div>
+  </dialog>
+
+  <!-- 10. Modal Restablecer Contraseña de Otro Usuario (Admin Only) -->
+  <dialog class="admin-modal" id="admin-reset-password-modal">
+    <div class="admin-modal-header">
+      <h3>Restablecer Contraseña</h3>
+      <button class="admin-btn admin-btn-secondary admin-btn-sm" onclick="closeDialog('admin-reset-password-modal')">&times;</button>
+    </div>
+    <div class="admin-modal-body">
+      <div id="reset-pw-alert" style="display:none; margin-bottom:1rem; padding:8px 12px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); color:#fca5a5; border-radius:6px; font-size:0.85rem;"></div>
+      <p style="color:#94a3b8; font-size:0.85rem; margin-bottom:1rem;">Nueva contraseña para <strong id="reset-pw-username" style="color:#38bdf8;"></strong>. Sus sesiones abiertas se cerrarán.</p>
+      <input type="hidden" id="reset-pw-userid">
+      <div class="form-group">
+        <label class="form-label" for="reset-pw-new">Nueva Contraseña</label>
+        <input type="password" id="reset-pw-new" class="form-input" placeholder="Mín. 10 caracteres" autocomplete="new-password">
+        <small style="display:block; margin-top:4px; color:#94a3b8; font-size:0.75rem;">Mínimo 10 caracteres y al menos 3 de: minúsculas, mayúsculas, números, símbolos.</small>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="reset-pw-confirm">Confirmar Contraseña</label>
+        <input type="password" id="reset-pw-confirm" class="form-input" autocomplete="new-password">
+      </div>
+    </div>
+    <div class="admin-modal-footer">
+      <button class="admin-btn admin-btn-secondary" onclick="closeDialog('admin-reset-password-modal')">Cancelar</button>
+      <button class="admin-btn admin-btn-primary" onclick="submitResetPassword()">Restablecer</button>
+    </div>
   </dialog>
 
   <!-- Toast Notification -->
