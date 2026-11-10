@@ -9,12 +9,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
   <style>
-    :root {
+       :root {
       --bg: #090d16;
       --card-bg: rgba(17, 24, 39, 0.85);
       --border: rgba(255, 255, 255, 0.1);
-      --primary: #fcea10;
-      --primary-hover: #e5d40d;
+      --primary: #b30f14;
+      --primary-hover: #ed1c24;
       --primary-text: #0f172a;
       --text: #f8fafc;
       --text-muted: #94a3b8;
@@ -30,7 +30,7 @@
     }
 
     body {
-      background: radial-gradient(ellipse at 50% 20%, #1e293b 0%, #090d16 70%, #030712 100%);
+      background: radial-gradient(ellipse at 50% 20%, #0b2247 0%, #0f182c 70%, #030712 100%);
       color: var(--text);
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       min-height: 100vh;
@@ -73,8 +73,7 @@
       align-items: center;
       gap: 6px;
       padding: 4px 14px;
-      background: rgba(252, 234, 16, 0.12);
-      border: 1px solid rgba(252, 234, 16, 0.3);
+      border: 1px solid #F44336;
       border-radius: 99px;
       color: var(--primary);
       font-size: 0.75rem;
@@ -139,7 +138,7 @@
     .form-input:focus {
       outline: none;
       border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(252, 234, 16, 0.2);
+      box-shadow: 0 0 0 3px rgba(252, 16, 16, 0.2);
     }
 
     .toggle-password {
@@ -164,7 +163,7 @@
       width: 100%;
       padding: 0.85rem 1.25rem;
       background: var(--primary);
-      color: var(--primary-text);
+      color: var(--text);
       border: none;
       border-radius: 8px;
       font-size: 0.95rem;
@@ -182,7 +181,7 @@
     .btn-submit:hover:not(:disabled) {
       background: var(--primary-hover);
       transform: translateY(-1px);
-      box-shadow: 0 8px 20px -6px rgba(252, 234, 16, 0.4);
+      box-shadow: 0 8px 20px -6px rgba(252, 16, 16, 0.4);
     }
 
     .btn-submit:disabled {

@@ -8,7 +8,7 @@
   --admin-primary-hover: #1d4ed8;
   --admin-sidebar-bg: #0f172a;
   --admin-sidebar-hover: #1e293b;
-  --admin-sidebar-text: #94a3b8;
+  --admin-sidebar-text: #c1c1c1;
   --admin-sidebar-active: #ffffff;
   
   --admin-bg: #f8fafc;
@@ -25,6 +25,8 @@
   --radius-md: 10px;
   --radius-lg: 16px;
 }
+
+
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -63,6 +65,19 @@ body {
   overflow-y: auto;
 }
 
+.logo {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  background-color: #ED1C24;
+  padding: 12px;
+  text-align: center;
+}
+
+.logo svg {
+  max-width: 120px;
+}
+
 .sidebar-brand {
   padding: 1.5rem;
   display: flex;
@@ -74,7 +89,7 @@ body {
 .brand-icon {
   width: 36px;
   height: 36px;
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  background: linear-gradient(135deg, #b30f14, #ed1c24);;
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
@@ -91,8 +106,9 @@ body {
 
 .brand-badge {
   font-size: 0.65rem;
-  background: #3b82f6;
-  color: #ffffff;
+  /* background: #ed1c24; */
+  color:#ed1c24;
+;
   padding: 0.15rem 0.4rem;
   border-radius: 4px;
   font-weight: 700;
@@ -111,7 +127,7 @@ body {
   font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
-  color: #475569;
+  color: var(--admin-bg);
   letter-spacing: 0.05em;
   padding: 0.75rem 0.75rem 0.35rem 0.75rem;
 }
@@ -169,16 +185,19 @@ body {
 
 /* Top Navigation Bar */
 .admin-topbar {
-  height: 68px;
   background: #ffffff;
   border-bottom: 1px solid var(--admin-border);
   display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: space-between;
-  padding: 0 2rem;
+  padding: 1rem 2rem;
   position: sticky;
   top: 0;
   z-index: 100;
+}
+
+.topbar-title-wrap {
+  padding: 12px 0;
 }
 
 .topbar-title-wrap h2 {
