@@ -1131,7 +1131,9 @@ ul.ponentes li span {
 
 /* Column 1: Info */
 .broadcast-info-col {
+
   padding-right: 1rem;
+
 }
 
 .broadcast-talk-title {
@@ -1142,7 +1144,10 @@ ul.ponentes li span {
   line-height: 1.22;
   margin-bottom: 0.85rem;
   letter-spacing: -0.015em;
-  transition: opacity 0.3s ease;
+}
+
+.animar {
+  animation: 1s ease-in-out .3s forwards animate;
 }
 
 .broadcast-talk-time {
@@ -1167,6 +1172,20 @@ ul.ponentes li span {
   color: #ffffff;
   font-weight: 700;
 }
+
+@keyframes animate {
+  from {
+    opacity: 0;
+    transform: translate(0, 100px);
+    filter: blur(33px)
+  }
+  to {
+    opacity: 1;
+    transform: translate(0);
+    filter: blur(0)
+  }
+}
+
 
 /* Play Button */
 .broadcast-play-btn {

@@ -603,13 +603,13 @@ function renderBroadcast(broadcastData) {
     const previewTray = document.getElementById('broadcast-preview-tray');
 
     // Smooth subtle transition
-    if (titleEl) {
-      titleEl.style.opacity = '0';
-      setTimeout(() => {
-        titleEl.textContent = active.title || '';
-        titleEl.style.opacity = '1';
-      }, 120);
-    }
+    // if (titleEl) {
+    //   titleEl.style.opacity = '0';
+    //   setTimeout(() => {
+    //     titleEl.textContent = active.title || '';
+    //     titleEl.style.opacity = '1';
+    //   }, 120);
+    // }
 
     if (timeEl) timeEl.textContent = active.time || '';
     
@@ -680,15 +680,41 @@ function renderBroadcast(broadcastData) {
   };
 
   // Setup Arrow Navigation
-  const nextBtn = document.getElementById('broadcast-next-btn');
-  const prevBtn = document.getElementById('broadcast-prev-btn');
+const nextBtn = document.getElementById('broadcast-next-btn');
+const prevBtn = document.getElementById('broadcast-prev-btn');
 
-  if (nextBtn) {
-    nextBtn.onclick = () => updateStage(currentBroadcastIndex + 1);
+// Función auxiliar para aplicar la animación
+const dispararAnimacion = () => {
+  const infoCol = document.querySelector('.broadcast-info-col');
+  
+  if (infoCol) {
+    // Añade la clase que tiene la animación de CSS
+    infoCol.classList.add('animar');
+
+    // Quita la clase al terminar para que se pueda repetir en el siguiente clic
+    infoCol.addEventListener('animationend', () => {
+      infoCol.classList.remove('animar');
+    }, { once: true });
   }
-  if (prevBtn) {
-    prevBtn.onclick = () => updateStage(currentBroadcastIndex - 1);
-  }
+};
+
+if (nextBtn) {
+  nextBtn.onclick = () => {
+    dispararAnimacion(); // <-- Se ejecuta al avanzar
+    setTimeout(() => {
+    updateStage(currentBroadcastIndex + 1);
+  }, 300); 
+  };
+}
+
+if (prevBtn) {
+  prevBtn.onclick = () => {
+    dispararAnimacion(); // <-- Se ejecuta al retroceder
+    setTimeout(() => {
+    updateStage(currentBroadcastIndex + 1);
+  }, 300); 
+  };
+}
 
   // Touch Swipe Gesture for mobile
   if (section) {
