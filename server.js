@@ -365,7 +365,7 @@ const server = http.createServer((req, res) => {
       .then(({ username, password }) => {
         const wait = getLockoutRemaining(ip, username);
         if (wait > 0) {
-          const minutes = Math.ceil(wait / 60000);
+          const minutes = Math.ceil(wait / 600);
           return sendJson(429, { error: `Demasiados intentos fallidos. Intenta de nuevo en ${minutes} min.` },
             { 'Retry-After': String(Math.ceil(wait / 1000)) });
         }
