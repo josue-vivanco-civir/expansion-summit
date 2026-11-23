@@ -1,12 +1,13 @@
 {
   "name": "summit-cms",
-  "version": "1.0.0",
-  "description": "CMS y Landing Page configurable para eventos tipo Summit",
+  "version": "2.0.0",
+  "private": true,
   "type": "module",
+  "description": "CMS para landing pages de eventos Summit: varios eventos, versiones, publicación por URL y vista previa",
   "scripts": {
     "start": "node server.js"
   },
-  "keywords": ["cms", "summit", "events", "landing-page"],
-  "author": "",
-  "license": "MIT"
+  "engines": {
+    "node": ">=20"
+  }
 }

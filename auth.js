@@ -1,6 +1,5 @@
 import crypto from 'node:crypto';
-import fs from 'node:fs';
-import path from 'node:path';
+import { supabase } from './lib/supabase.js';
 
 // ==========================================
 // Configuración
@@ -18,8 +17,8 @@ const ATTEMPT_WINDOW_MS = 15 * 60 * 1000;
 
 export const SESSION_COOKIE = 'summit_session';
 
-let USERS_FILE = '';
-let SESSIONS_FILE = '';
+// Los usuarios y sesiones viven en Supabase; estas cachés en memoria mantienen
+// las verificaciones síncronas y rápidas. Toda escritura va primero a la base.
 let usersCache = [];
 const sessionsCache = new Map(); // key: sha256(token)
 const failedAttempts = new Map(); // key: "ip" o "user:<name>"
@@ -43,14 +42,76 @@ function hashToken(token) {
   return crypto.createHash('sha256').update(String(token)).digest('hex');
 }
 
-function writeJsonAtomic(file, data) {
-  const tmp = `${file}.${process.pid}.tmp`;
-  fs.writeFileSync(tmp, JSON.stringify(data, null, 2), { encoding: 'utf-8', mode: 0o600 });
-  fs.renameSync(tmp, file);
-}
-
 function publicUser(u) {
   return { id: u.id, username: u.username, name: u.name, role: u.role, createdAt: u.createdAt };
+}
+
+// ---------- Conversión entre la base de datos y el formato interno ----------
+const desdeBD = (r) => ({
+  id: r.id,
+  username: r.username,
+  name: r.nombre,
+  role: r.rol,
+  salt: r.salt,
+  iterations: r.iterations,
+  passwordHash: r.password_hash,
+  createdAt: r.creado_en,
+});
+
+const haciaBD = (u) => ({
+  id: u.id,
+  username: u.username,
+  nombre: u.name,
+  rol: u.role,
+  salt: u.salt,
+  iterations: u.iterations,
+  password_hash: u.passwordHash,
+  creado_en: u.createdAt,
+});
+
+// Escrituras que no deben frenar la respuesta (sesiones, re-hash); los errores se registran.
+function enSegundoPlano(operacion, contexto) {
+  Promise.resolve(operacion)
+    .then((r) => { if (r && r.error) console.error(`[auth] ${contexto}:`, r.error.message); })
+    .catch((e) => console.error(`[auth] ${contexto}:`, e.message));
+}
+
+function guardarSesionBD(key, s) {
+  enSegundoPlano(supabase.from('sesiones').upsert({
+    token_hash: key,
+    usuario_id: s.userId,
+    creado_ms: s.createdAt,
+    ultimo_uso_ms: s.lastSeen,
+    expira_ms: s.expiresAt,
+  }), 'guardar sesión');
+}
+
+function borrarSesionBD(key) {
+  enSegundoPlano(supabase.from('sesiones').delete().eq('token_hash', key), 'borrar sesión');
+}
+
+function limpiarSesionesVencidas() {
+  const now = Date.now();
+  for (const [key, s] of sessionsCache.entries()) {
+    if (s.expiresAt <= now || now - s.lastSeen > SESSION_IDLE_MS) sessionsCache.delete(key);
+  }
+  enSegundoPlano(
+    supabase.from('sesiones').delete().or(`expira_ms.lt.${now},ultimo_uso_ms.lt.${now - SESSION_IDLE_MS}`),
+    'limpiar sesiones'
+  );
+}
+
+async function guardarPassword(user, newPassword) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const passwordHash = hashPassword(newPassword, salt);
+  const { error } = await supabase
+    .from('usuarios')
+    .update({ salt, iterations: PBKDF2_ITERATIONS, password_hash: passwordHash })
+    .eq('id', user.id);
+  if (error) throw new Error('No se pudo guardar la contraseña. Intenta de nuevo.');
+  user.salt = salt;
+  user.iterations = PBKDF2_ITERATIONS;
+  user.passwordHash = passwordHash;
 }
 
 export function validatePasswordStrength(password) {
@@ -65,33 +126,30 @@ export function validatePasswordStrength(password) {
 }
 
 // ==========================================
-// Inicialización
+// Inicialización (ahora asíncrona: lee de Supabase)
 // ==========================================
-export function initAuth(dataDir) {
-  USERS_FILE = path.join(dataDir, 'users.json');
-  SESSIONS_FILE = path.join(dataDir, 'sessions.json');
+export async function initAuth() {
   DUMMY_HASH = hashPassword('dummy-password', DUMMY_SALT);
 
-  if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
-
-  if (fs.existsSync(USERS_FILE)) {
-    try {
-      usersCache = JSON.parse(fs.readFileSync(USERS_FILE, 'utf-8'));
-    } catch (e) {
-      console.error('❌ No se pudo leer data/users.json. Revisa el archivo antes de continuar.', e);
-      process.exit(1);
-    }
+  const { data: filas, error } = await supabase.from('usuarios').select('*');
+  if (error) {
+    console.error('❌ No se pudieron leer los usuarios de la base de datos.', error);
+    process.exit(1);
   }
+  usersCache = filas.map(desdeBD);
 
   // Elimina cuentas que aún usan las contraseñas de demostración de la versión anterior
   const DEMO_PASSWORDS = ['Admin@Summit2026!', 'Editor@Summit2026!'];
-  const before = usersCache.length;
-  usersCache = usersCache.filter(u => !DEMO_PASSWORDS.some(pw =>
+  const demo = usersCache.filter(u => DEMO_PASSWORDS.some(pw =>
     safeEqualHex(hashPassword(pw, u.salt, u.iterations || 100000), u.passwordHash)
   ));
-  if (usersCache.length !== before) {
-    writeJsonAtomic(USERS_FILE, usersCache);
-    console.warn(`⚠️  Se eliminaron ${before - usersCache.length} cuenta(s) con contraseñas de demostración.`);
+  if (demo.length) {
+    const { error: e } = await supabase.from('usuarios').delete().in('id', demo.map(u => u.id));
+    if (e) console.error('No se pudieron eliminar las cuentas de demostración:', e.message);
+    else {
+      usersCache = usersCache.filter(u => !demo.includes(u));
+      console.warn(`⚠️  Se eliminaron ${demo.length} cuenta(s) con contraseñas de demostración.`);
+    }
   }
 
   // Sin administradores → se crea el primero a partir de variables de entorno
@@ -107,7 +165,7 @@ export function initAuth(dataDir) {
     validatePasswordStrength(password);
 
     const salt = crypto.randomBytes(16).toString('hex');
-    usersCache.push({
+    const admin = {
       id: `usr_${crypto.randomUUID()}`,
       username,
       name: process.env.ADMIN_NAME || 'Administrador Principal',
@@ -116,8 +174,13 @@ export function initAuth(dataDir) {
       iterations: PBKDF2_ITERATIONS,
       passwordHash: hashPassword(password, salt),
       createdAt: new Date().toISOString()
-    });
-    writeJsonAtomic(USERS_FILE, usersCache);
+    };
+    const { error: e } = await supabase.from('usuarios').insert(haciaBD(admin));
+    if (e) {
+      console.error('❌ No se pudo crear el administrador inicial.', e);
+      process.exit(1);
+    }
+    usersCache.push(admin);
 
     console.log('===============================================');
     console.log(`👑 Administrador inicial creado: ${username}`);
@@ -128,38 +191,26 @@ export function initAuth(dataDir) {
     console.log('===============================================');
   }
 
-  // Sesiones persistidas (solo se guardan hashes de los tokens)
-  if (fs.existsSync(SESSIONS_FILE)) {
-    try {
-      const saved = JSON.parse(fs.readFileSync(SESSIONS_FILE, 'utf-8'));
-      const now = Date.now();
-      for (const [key, s] of Object.entries(saved)) {
-        // Descarta formatos antiguos (token en claro, sin lastSeen)
-        if (key.length === 64 && s && s.lastSeen && s.expiresAt > now) sessionsCache.set(key, s);
+  // Sesiones vigentes (sobreviven a los redeploys de Render)
+  const now = Date.now();
+  const { data: sesiones, error: e2 } = await supabase.from('sesiones').select('*').gt('expira_ms', now);
+  if (e2) {
+    console.error('Error al cargar sesiones:', e2.message);
+  } else {
+    for (const s of sesiones) {
+      const lastSeen = Number(s.ultimo_uso_ms);
+      if (now - lastSeen < SESSION_IDLE_MS) {
+        sessionsCache.set(s.token_hash, {
+          userId: s.usuario_id,
+          createdAt: Number(s.creado_ms),
+          lastSeen,
+          expiresAt: Number(s.expira_ms)
+        });
       }
-    } catch (e) {
-      console.error('Error loading sessions.json:', e);
     }
   }
-  persistSessions();
-}
-
-function persistSessions() {
-  try {
-    const now = Date.now();
-    const obj = {};
-    for (const [key, s] of sessionsCache.entries()) {
-      if (s.expiresAt > now && now - s.lastSeen < SESSION_IDLE_MS) obj[key] = s;
-      else sessionsCache.delete(key);
-    }
-    writeJsonAtomic(SESSIONS_FILE, obj);
-  } catch (e) {
-    console.error('Error persisting sessions:', e);
-  }
-}
-
-function persistUsers() {
-  writeJsonAtomic(USERS_FILE, usersCache);
+  limpiarSesionesVencidas();
+  setInterval(limpiarSesionesVencidas, 60 * 60 * 1000).unref();
 }
 
 // ==========================================
@@ -236,7 +287,12 @@ export function authenticateUser(username, password, ip = 'unknown') {
     user.salt = crypto.randomBytes(16).toString('hex');
     user.iterations = PBKDF2_ITERATIONS;
     user.passwordHash = hashPassword(password, user.salt);
-    persistUsers();
+    enSegundoPlano(
+      supabase.from('usuarios')
+        .update({ salt: user.salt, iterations: user.iterations, password_hash: user.passwordHash })
+        .eq('id', user.id),
+      're-hash de contraseña'
+    );
   }
   return publicUser(user);
 }
@@ -244,13 +300,10 @@ export function authenticateUser(username, password, ip = 'unknown') {
 export function createSession(user) {
   const token = crypto.randomBytes(32).toString('hex');
   const now = Date.now();
-  sessionsCache.set(hashToken(token), {
-    userId: user.id,
-    createdAt: now,
-    lastSeen: now,
-    expiresAt: now + SESSION_ABSOLUTE_MS
-  });
-  persistSessions();
+  const key = hashToken(token);
+  const s = { userId: user.id, createdAt: now, lastSeen: now, expiresAt: now + SESSION_ABSOLUTE_MS };
+  sessionsCache.set(key, s);
+  guardarSesionBD(key, s);
   return token;
 }
 
@@ -263,29 +316,33 @@ export function verifySession(token) {
   const now = Date.now();
   if (s.expiresAt <= now || now - s.lastSeen > SESSION_IDLE_MS) {
     sessionsCache.delete(key);
-    persistSessions();
+    borrarSesionBD(key);
     return null;
   }
 
   const user = usersCache.find(u => u.id === s.userId);
   if (!user) {
     sessionsCache.delete(key);
-    persistSessions();
+    borrarSesionBD(key);
     return null;
   }
 
   // Ventana deslizante; se persiste como máximo una vez por minuto
   if (now - s.lastSeen > 60 * 1000) {
     s.lastSeen = now;
-    persistSessions();
+    enSegundoPlano(
+      supabase.from('sesiones').update({ ultimo_uso_ms: now }).eq('token_hash', key),
+      'actualizar sesión'
+    );
   }
   return publicUser(user);
 }
 
 export function destroySession(token) {
   if (!token) return;
-  sessionsCache.delete(hashToken(token));
-  persistSessions();
+  const key = hashToken(token);
+  sessionsCache.delete(key);
+  borrarSesionBD(key);
 }
 
 function destroySessionsForUser(userId, exceptToken = null) {
@@ -293,17 +350,19 @@ function destroySessionsForUser(userId, exceptToken = null) {
   for (const [key, s] of sessionsCache.entries()) {
     if (s.userId === userId && key !== exceptKey) sessionsCache.delete(key);
   }
-  persistSessions();
+  let q = supabase.from('sesiones').delete().eq('usuario_id', userId);
+  if (exceptKey) q = q.neq('token_hash', exceptKey);
+  enSegundoPlano(q, 'cerrar sesiones del usuario');
 }
 
 // ==========================================
-// Gestión de usuarios (solo admin)
+// Gestión de usuarios (solo admin) — ahora asíncrona
 // ==========================================
 export function getUsersList() {
   return usersCache.map(publicUser);
 }
 
-export function createUser({ username, name, password, role }) {
+export async function createUser({ username, name, password, role }) {
   const clean = String(username || '').trim().toLowerCase();
   if (!USERNAME_RE.test(clean)) {
     throw new Error('El usuario debe tener 3–32 caracteres: letras minúsculas, números, punto, guion o guion bajo');
@@ -324,12 +383,18 @@ export function createUser({ username, name, password, role }) {
     passwordHash: hashPassword(password, salt),
     createdAt: new Date().toISOString()
   };
+
+  const { error } = await supabase.from('usuarios').insert(haciaBD(newUser));
+  if (error) {
+    if (error.code === '23505') throw new Error('El nombre de usuario ya está registrado');
+    console.error('[auth] crear usuario:', error.message);
+    throw new Error('No se pudo guardar el usuario. Intenta de nuevo.');
+  }
   usersCache.push(newUser);
-  persistUsers();
   return publicUser(newUser);
 }
 
-export function deleteUser(userId, currentUserId) {
+export async function deleteUser(userId, currentUserId) {
   if (userId === currentUserId) throw new Error('No puedes eliminar tu propia cuenta activa');
   const index = usersCache.findIndex(u => u.id === userId);
   if (index === -1) throw new Error('Usuario no encontrado');
@@ -339,25 +404,27 @@ export function deleteUser(userId, currentUserId) {
     throw new Error('Debe existir al menos un Administrador');
   }
 
+  // Sus sesiones se borran en cascada; sus versiones y tareas quedan sin autor
+  const { error } = await supabase.from('usuarios').delete().eq('id', userId);
+  if (error) {
+    console.error('[auth] eliminar usuario:', error.message);
+    throw new Error('No se pudo eliminar el usuario. Intenta de nuevo.');
+  }
   destroySessionsForUser(userId);
-  usersCache.splice(index, 1);
-  persistUsers();
+  usersCache.splice(usersCache.indexOf(target), 1);
   return true;
 }
 
-export function adminResetPassword(userId, newPassword) {
+export async function adminResetPassword(userId, newPassword) {
   const user = usersCache.find(u => u.id === userId);
   if (!user) throw new Error('Usuario no encontrado');
   validatePasswordStrength(newPassword);
-  user.salt = crypto.randomBytes(16).toString('hex');
-  user.iterations = PBKDF2_ITERATIONS;
-  user.passwordHash = hashPassword(newPassword, user.salt);
-  persistUsers();
+  await guardarPassword(user, newPassword);
   destroySessionsForUser(userId); // cierra sus sesiones abiertas
   return true;
 }
 
-export function changePassword(userId, oldPassword, newPassword, currentToken) {
+export async function changePassword(userId, oldPassword, newPassword, currentToken) {
   const user = usersCache.find(u => u.id === userId);
   if (!user) throw new Error('Usuario no encontrado');
 
@@ -366,10 +433,7 @@ export function changePassword(userId, oldPassword, newPassword, currentToken) {
   if (oldPassword === newPassword) throw new Error('La nueva contraseña debe ser distinta de la actual');
   validatePasswordStrength(newPassword);
 
-  user.salt = crypto.randomBytes(16).toString('hex');
-  user.iterations = PBKDF2_ITERATIONS;
-  user.passwordHash = hashPassword(newPassword, user.salt);
-  persistUsers();
+  await guardarPassword(user, newPassword);
   destroySessionsForUser(userId, currentToken); // cierra las demás sesiones
   return true;
 }

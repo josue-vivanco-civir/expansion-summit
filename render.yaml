@@ -1,0 +1,27 @@
+# Blueprint de Render (opcional): New > Blueprint y elige este repositorio.
+# El disco persistente requiere un plan de pago (Starter o superior).
+services:
+  - type: web
+    name: summit-cms
+    runtime: node
+    plan: starter
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /robots.txt
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: DATA_DIR
+        value: /var/data
+      - key: ADMIN_USERNAME
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: EVENTO_INICIAL
+        value: ESG Summit 2026
+      - key: PERMITIR_INDEXACION
+        value: "false"
+    disk:
+      name: summit-data
+      mountPath: /var/data
+      sizeGB: 1

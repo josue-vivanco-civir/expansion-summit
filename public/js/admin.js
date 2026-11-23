@@ -30,6 +30,13 @@ async function initAdmin() {
 async function loadSummitData() {
   try {
     const res = await fetch('/api/data');
+    if (res.status === 404) {
+      // El evento no existe, está en la papelera o aún no hay eventos: se elige uno en /eventos
+      const info = await res.json().catch(() => ({}));
+      showToast((info.error || 'No se encontró el evento') + '. Abriendo la lista de eventos…', 'error');
+      setTimeout(() => { window.location.href = '/eventos'; }, 1800);
+      return;
+    }
     if (!res.ok) throw new Error('Error al cargar datos desde el servidor');
     summitData = await res.json();
     populateAllForms();
@@ -51,14 +58,23 @@ async function saveAllData() {
       body: JSON.stringify(summitData)
     });
     const result = await res.json();
+    if (res.status === 409) {
+      // Otra persona guardó este evento y se eligió no sobrescribir (ver /js/evento-contexto.js)
+      showToast(`No se guardó: ${result.error}. Recarga la página para ver su versión o vuelve a guardar para reemplazarla.`, 'error');
+      return false;
+    }
     if (result.success) {
-      showToast('¡Cambios guardados con éxito en el servidor!', 'success');
+      showToast(result.version
+        ? `¡Cambios guardados! Ahora es la versión ${result.version}`
+        : '¡Cambios guardados con éxito en el servidor!', 'success');
+      return true;
     } else {
       throw new Error(result.error || 'Error al guardar');
     }
   } catch (err) {
     console.error('Error al guardar:', err);
     showToast('Error al guardar datos: ' + err.message, 'error');
+    return false;
   }
 }
 
@@ -1004,12 +1020,17 @@ function setupGlobalActions() {
   document.getElementById('save-all-btn')?.addEventListener('click', saveAllData);
 
   // Live Preview Modal
-  document.getElementById('open-preview-btn')?.addEventListener('click', () => {
-    saveAllData();
+  document.getElementById('open-preview-btn')?.addEventListener('click', async () => {
+    await saveAllData();
     const modal = document.getElementById('live-preview-modal');
     const iframe = document.getElementById('live-preview-iframe');
     if (modal && iframe) {
-      iframe.src = '/?' + Date.now();
+      // Muestra lo último guardado del evento sin publicarlo (/vista-previa solo funciona con sesión)
+      const eventoId = window.summitEvento?.id;
+      const url = eventoId ? `/vista-previa/${encodeURIComponent(eventoId)}` : '/vista-previa';
+      iframe.src = `${url}?t=${Date.now()}`;
+      const abrir = document.getElementById('live-preview-open');
+      if (abrir) abrir.href = url;
       openDialog('live-preview-modal');
     }
   });
@@ -1020,7 +1041,10 @@ function setupGlobalActions() {
     const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(summitData, null, 2));
     const a = document.createElement('a');
     a.href = dataStr;
-    a.download = `summit-config-${Date.now()}.json`;
+    const slug = (window.summitEvento?.nombre || 'summit').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'summit';
+    const version = window.summitEvento?.version ? `-v${window.summitEvento.version}` : '';
+    a.download = `${slug}${version}-${Date.now()}.json`;
     a.click();
   });
 
@@ -1036,8 +1060,7 @@ function setupGlobalActions() {
           const parsed = JSON.parse(event.target.result);
           summitData = parsed;
           populateAllForms();
-          await saveAllData();
-          showToast('Configuración importada exitosamente', 'success');
+          if (await saveAllData()) showToast('Respaldo importado y guardado como versión nueva', 'success');
         } catch (err) {
           alert('El archivo no contiene un JSON válido: ' + err.message);
         }
@@ -2595,7 +2618,7 @@ window.submitResetPassword = async function() {
     if (res.status === 401 && url.startsWith('/api/') && !url.startsWith('/api/auth/login') && !redirecting) {
       redirecting = true;
       alert('Tu sesión expiró. Vuelve a iniciar sesión (los cambios no guardados se perderán).');
-      window.location.href = '/login?next=' + encodeURIComponent('/admin');
+      window.location.href = '/login?next=' + encodeURIComponent(window.location.pathname + window.location.search);
     }
     return res;
   };

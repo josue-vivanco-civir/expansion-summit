@@ -18,26 +18,31 @@ import {
   getTokenFromRequest,
   getSessionFromRequest,
   makeSessionCookie,
-  makeLogoutCookie
+  makeLogoutCookie,
+  parseCookies
 } from './auth.js';
+import { httpError } from './lib/errores.js';
+import * as ev from './lib/eventos.js';
+import { esRutaEventos, manejarApiEventos } from './lib/api-eventos.js';
+import { htmlLanding, htmlSinPublicar } from './lib/publicacion.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const PORT = process.env.PORT || 3000;
+// En Render, DATA_DIR debe apuntar a un disco persistente (p. ej. /var/data)
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
-const DATA_FILE = path.join(DATA_DIR, 'summit-data.json');
-const BACKUP_FILE = path.join(DATA_DIR, 'summit-data.backup.json');
 const PRESETS_DIR = path.join(__dirname, 'data', 'presets');
 const PUBLIC_DIR = path.join(__dirname, 'public');
-const UPLOADS_DIR = path.join(PUBLIC_DIR, 'uploads');
+const UPLOADS_DIR = path.join(DATA_DIR, 'uploads');               // imágenes nuevas
+const UPLOADS_LEGADO_DIR = path.join(PUBLIC_DIR, 'uploads');      // imágenes que ya vienen en el repositorio
+const EVENTO_COOKIE = 'summit_evento';
 
-// La vista previa de la landing en "/" es privada salvo que se active explícitamente
-const PUBLIC_LANDING = process.env.PUBLIC_LANDING === 'true';
 // Detrás de Render/Nginx/Cloudflare la IP real y el protocolo vienen en cabeceras
 const TRUST_PROXY = process.env.TRUST_PROXY !== 'false';
+// Las landings publicadas solo se dejan indexar en buscadores si se activa explícitamente
+const PERMITIR_INDEXACION = process.env.PERMITIR_INDEXACION === 'true';
 
-if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 // Si DATA_DIR apunta a un disco persistente vacío, se siembra con los datos del repositorio
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 for (const f of ['summit-data.json', 'summit-data.backup.json']) {
@@ -46,6 +51,12 @@ for (const f of ['summit-data.json', 'summit-data.backup.json']) {
   if (!fs.existsSync(dst) && fs.existsSync(src) && src !== dst) fs.copyFileSync(src, dst);
 }
 initAuth(DATA_DIR);
+ev.initEventos({
+  dataDir: DATA_DIR,
+  uploadsDir: UPLOADS_DIR,
+  uploadsLegadoDir: UPLOADS_LEGADO_DIR,
+  listarUsuarios: getUsersList
+});
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -60,7 +71,11 @@ const MIME_TYPES = {
   '.svg': 'image/svg+xml',
   '.webp': 'image/webp',
   '.avif': 'image/avif',
-  '.ico': 'image/x-icon'
+  '.ico': 'image/x-icon',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2',
+  '.ttf': 'font/ttf',
+  '.otf': 'font/otf'
 };
 
 // Tipos permitidos en /api/upload (extensión → MIME esperado)
@@ -76,43 +91,42 @@ const UPLOAD_TYPES = {
 };
 const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
 
-// Rutas que no requieren sesión
+// ==========================================
+// QUÉ ES PÚBLICO
+// Las landings publicadas, sus estilos/scripts/imágenes y el login.
+// Todo lo demás (editor, tablero de eventos, vista previa, API de escritura) pide sesión.
+// ==========================================
 const PUBLIC_EXACT = new Set(['/login', '/login/', '/login.html', '/robots.txt', '/favicon.ico',
   '/api/auth/login', '/api/auth/me', '/api/auth/logout']);
-const PUBLIC_PREFIXES = ['/uploads/'];
-const LANDING_PUBLIC_EXACT = new Set(['/', '/index.html', '/css/landing.css', '/js/landing.js']);
+const PRIVATE_FILES = new Set(['admin.html', 'eventos.html', 'js/admin.js', 'index.html']);
+const PUBLIC_STATIC_EXT = new Set(['.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.avif',
+  '.ico', '.woff', '.woff2', '.ttf', '.otf']);
 
 function isPublicRoute(pathname, method) {
   if (PUBLIC_EXACT.has(pathname)) return true;
-  if (PUBLIC_PREFIXES.some(p => pathname.startsWith(p))) return true;
-  if (PUBLIC_LANDING) {
-    if (LANDING_PUBLIC_EXACT.has(pathname)) return true;
-    if (pathname === '/api/data' && method === 'GET') return true;
-  }
+  if (pathname.startsWith('/uploads/')) return true;
+  // /api/data sin sesión solo entrega contenido publicado
+  if (pathname === '/api/data' && method === 'GET') return true;
+  if ((method === 'GET' || method === 'HEAD') && !PRIVATE_FILES.has(pathname)
+    && PUBLIC_STATIC_EXT.has(path.extname(pathname).toLowerCase())) return true;
   return false;
 }
 
-function readSummitData() {
+// Una ruta de primer nivel que podría ser la URL de una landing: /mujeres-2026
+const RUTA_LANDING_RE = /^\/[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+function leerJsonArchivo(file) {
   try {
-    if (!fs.existsSync(DATA_FILE)) return null;
-    return JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8'));
-  } catch (err) {
-    console.error('Error reading data:', err);
+    return JSON.parse(fs.readFileSync(file, 'utf-8'));
+  } catch {
     return null;
   }
 }
 
-function writeSummitData(data) {
-  try {
-    if (fs.existsSync(DATA_FILE)) fs.copyFileSync(DATA_FILE, BACKUP_FILE);
-    const tmp = `${DATA_FILE}.tmp`;
-    fs.writeFileSync(tmp, JSON.stringify(data, null, 2), 'utf-8');
-    fs.renameSync(tmp, DATA_FILE);
-    return true;
-  } catch (err) {
-    console.error('Error writing data:', err);
-    return false;
-  }
+// Contenido con el que nace un evento nuevo que no se copia de otro
+function cargarPlantilla() {
+  return leerJsonArchivo(path.join(PRESETS_DIR, 'esg-summit.json'))
+    || leerJsonArchivo(path.join(__dirname, 'data', 'summit-data.json'));
 }
 
 function escapeHtml(str) {
@@ -141,6 +155,12 @@ function isSameOrigin(req) {
   } catch {
     return false;
   }
+}
+
+// Solo se aceptan destinos internos tras el login (evita redirecciones a otros sitios)
+function destinoSeguro(next, porDefecto) {
+  return typeof next === 'string' && next.startsWith('/') && !next.startsWith('//') && !next.startsWith('/\\')
+    ? next : porDefecto;
 }
 
 // Detecta el tipo real del archivo por sus primeros bytes (no confía en el nombre)
@@ -197,7 +217,7 @@ const server = http.createServer((req, res) => {
     return res.end();
   }
 
-  // Los assets subidos se pueden incrustar desde otros dominios (la landing exportada)
+  // Los assets subidos se pueden incrustar desde otros dominios (la landing exportada a WordPress)
   if (pathname.startsWith('/uploads/')) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
@@ -211,6 +231,7 @@ const server = http.createServer((req, res) => {
   }
 
   const currentUser = getSessionFromRequest(req);
+  const esLectura = req.method === 'GET' || req.method === 'HEAD';
 
   const sendJson = (statusCode, data, extraHeaders = {}) => {
     res.writeHead(statusCode, {
@@ -219,6 +240,20 @@ const server = http.createServer((req, res) => {
       ...extraHeaders
     });
     res.end(JSON.stringify(data));
+  };
+
+  const sendHtml = (statusCode, html, extraHeaders = {}) => {
+    res.writeHead(statusCode, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', ...extraHeaders });
+    res.end(req.method === 'HEAD' ? undefined : html);
+  };
+
+  // Convierte cualquier error (incluidos los de lib/eventos.js) en una respuesta JSON
+  const fallo = (err) => {
+    const status = err.status || 500;
+    if (status >= 500) console.error(`[${req.method} ${pathname}]`, err);
+    if (!res.headersSent) {
+      sendJson(status, { error: status >= 500 ? 'Error interno del servidor' : err.message, ...(err.extra || {}) });
+    }
   };
 
   const readJsonBody = (maxSize = 1024 * 1024) => new Promise((resolve, reject) => {
@@ -251,11 +286,55 @@ const server = http.createServer((req, res) => {
     req.on('error', reject);
   });
 
+  const leerJson = (maxSize) => readJsonBody(maxSize).catch(err => { throw httpError(400, err.message); });
+
+  // Evento que edita el editor: ?evento=<id> → cookie del editor → último editado
+  const eventoDeLaPeticion = () => {
+    const solicitado = parsedUrl.searchParams.get('evento');
+    if (solicitado) return ev.resolverEventoId(solicitado, { estricto: true });
+    return ev.resolverEventoId(parseCookies(req.headers.cookie)[EVENTO_COOKIE]);
+  };
+
   const isApi = pathname.startsWith('/api/');
 
   // CSRF: toda escritura debe originarse en este mismo dominio
-  if (req.method !== 'GET' && req.method !== 'HEAD' && !isSameOrigin(req)) {
+  if (!esLectura && !isSameOrigin(req)) {
     return sendJson(403, { error: 'Origen de la petición no permitido' });
+  }
+
+  // ==========================================
+  // LANDINGS PÚBLICAS: "/" y "/<ruta>" de cada evento publicado
+  // ==========================================
+  if (esLectura && (pathname === '/' || pathname === '/index.html' || RUTA_LANDING_RE.test(pathname.replace(/\/$/, '')))) {
+    if (pathname === '/index.html') {
+      res.writeHead(301, { Location: '/' + parsedUrl.search });
+      return res.end();
+    }
+    // /mujeres-2026/ → /mujeres-2026 (con la barra final las rutas relativas se romperían)
+    if (pathname.length > 1 && pathname.endsWith('/')) {
+      const sinBarra = pathname.slice(0, -1);
+      if (ev.eventoPublicoPorRuta(sinBarra)) {
+        res.writeHead(301, { Location: sinBarra + parsedUrl.search });
+        return res.end();
+      }
+    }
+    const publico = ev.eventoPublicoPorRuta(pathname);
+    if (publico) {
+      try {
+        const html = htmlLanding({ publicDir: PUBLIC_DIR, eventoId: publico.id, modo: 'publicado' });
+        if (PERMITIR_INDEXACION) res.removeHeader('X-Robots-Tag');
+        return sendHtml(200, html, { 'Cache-Control': 'no-cache' });
+      } catch (err) {
+        return fallo(err);
+      }
+    }
+    if (pathname === '/') return sendHtml(200, htmlSinPublicar({ conSesion: !!currentUser }));
+    // Una URL que no es del CMS ni de una landing publicada: 404 público, sin mandar al login
+    const ruta = pathname.replace(/^\/|\/$/g, '');
+    if (!ev.RUTAS_RESERVADAS.has(ruta)) {
+      return sendHtml(404, `<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>Página no encontrada</title><body style="margin:0;min-height:100vh;display:grid;place-items:center;font:16px/1.5 system-ui,sans-serif;text-align:center;padding:24px"><main><h1 style="margin:0 0 8px">Página no encontrada</h1><p style="margin:0;opacity:.7">Esta dirección no corresponde a ningún evento publicado.</p>${currentUser ? '<p><a href="/eventos">Ir a Eventos</a></p>' : ''}</main></body></html>`);
+    }
+    // Rutas del CMS (/admin, /login, /eventos, /vista-previa…) siguen su camino
   }
 
   // ==========================================
@@ -368,29 +447,64 @@ const server = http.createServer((req, res) => {
   }
 
   // ==========================================
-  // DATOS Y ASSETS
+  // DATOS DE LA LANDING
   // ==========================================
   if (pathname === '/api/data' && req.method === 'GET') {
-    const data = readSummitData();
-    if (!data) return sendJson(500, { error: 'No se pudo cargar la información del Summit' });
-    return sendJson(200, data);
+    try {
+      const modo = parsedUrl.searchParams.get('modo');
+      const pedido = parsedUrl.searchParams.get('evento');
+
+      // Sin sesión, o desde una URL pública: solo la versión publicada
+      if (!currentUser || modo === 'publicado') {
+        const publico = pedido ? ev.eventoPublicoPorId(pedido) : ev.eventoPublicoPorRuta('/');
+        if (!publico) return sendJson(404, { error: 'Esta landing no está publicada' });
+        return sendJson(200, ev.contenidoPublicado(publico));
+      }
+
+      // Vista previa: lo último guardado (o una versión concreta), sin publicar nada
+      if (modo === 'preview') {
+        const eventoId = eventoDeLaPeticion();
+        return sendJson(200, ev.obtenerContenido(eventoId, parsedUrl.searchParams.get('version')).contenido);
+      }
+
+      // Editor: lo último guardado, con el número de versión para detectar conflictos
+      const eventoId = eventoDeLaPeticion();
+      const actual = ev.obtenerContenidoActual(eventoId);
+      return sendJson(200, actual.contenido, {
+        'X-Evento-Id': eventoId,
+        'X-Evento-Nombre': encodeURIComponent(actual.nombre),
+        'X-Version': String(actual.numero)
+      });
+    } catch (err) {
+      return fallo(err);
+    }
   }
 
+  // Cada guardado crea una versión nueva. Con X-Version-Base (la pone js/evento-contexto.js)
+  // se detecta si otra persona guardó mientras editabas.
   if (pathname === '/api/data' && req.method === 'POST') {
-    readJsonBody(25 * 1024 * 1024)
+    leerJson(25 * 1024 * 1024)
       .then(payload => {
-        if (writeSummitData(payload)) {
-          sendJson(200, { success: true, message: 'Datos guardados correctamente' });
-        } else {
-          sendJson(500, { error: 'Error al persistir datos en disco' });
-        }
+        const eventoId = eventoDeLaPeticion();
+        const base = req.headers['x-version-base'];
+        let nota = null;
+        try { nota = req.headers['x-version-nota'] ? decodeURIComponent(req.headers['x-version-nota']) : null; } catch {}
+        const v = ev.guardarVersion({
+          eventoId,
+          versionBase: base ? Number(base) : null,
+          contenido: payload,
+          nota,
+          usuarioId: currentUser.id,
+          forzar: !base || req.headers['x-forzar'] === '1'
+        });
+        sendJson(200, { success: true, message: `Datos guardados (versión ${v.numero})`, version: v.numero, eventoId });
       })
-      .catch(err => sendJson(400, { error: 'Payload JSON inválido: ' + err.message }));
+      .catch(fallo);
     return;
   }
 
   if (pathname === '/api/upload' && req.method === 'POST') {
-    readJsonBody(Math.ceil(MAX_UPLOAD_BYTES * 1.4))
+    leerJson(Math.ceil(MAX_UPLOAD_BYTES * 1.4))
       .then(({ filename, dataUrl }) => {
         if (typeof filename !== 'string' || typeof dataUrl !== 'string') {
           return sendJson(400, { error: 'Faltan parámetros filename o dataUrl' });
@@ -407,46 +521,71 @@ const server = http.createServer((req, res) => {
           return sendJson(415, { error: 'Tipo de archivo no permitido. Solo imágenes (PNG, JPG, GIF, WEBP, AVIF, SVG, ICO).' });
         }
 
+        const eventoId = eventoDeLaPeticion();
         // El nombre se conserva, pero la extensión siempre refleja el contenido real
         const stem = path.basename(filename).replace(/\.[^.]*$/, '').replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 100) || 'imagen';
-        const cleanName = stem + realExt;
-
-        const uniqueName = `${Date.now()}-${cleanName}`;
+        const uniqueName = `${Date.now()}-${stem}${realExt}`;
         fs.writeFileSync(path.join(UPLOADS_DIR, uniqueName), buffer);
+        ev.registrarAsset(eventoId, { archivo: uniqueName, nombreOriginal: path.basename(filename), bytes: buffer.length, usuarioId: currentUser.id });
         sendJson(200, { success: true, url: `/uploads/${uniqueName}`, filename: uniqueName, sizeBytes: buffer.length });
       })
-      .catch(err => sendJson(400, { error: 'Error al procesar archivo: ' + err.message }));
+      .catch(fallo);
     return;
   }
 
+  // Aplica una plantilla como versión nueva del evento (la anterior queda en el historial)
   if (pathname === '/api/preset' && req.method === 'POST') {
     if (!requireAdmin()) return;
-    readJsonBody()
+    leerJson()
       .then(({ preset }) => {
         let presetPath = path.join(PRESETS_DIR, 'esg-summit.json');
-        if (preset === 'tech' || preset === 'default') presetPath = BACKUP_FILE;
-        if (!fs.existsSync(presetPath)) return sendJson(404, { error: 'Plantilla no encontrada' });
-        const data = JSON.parse(fs.readFileSync(presetPath, 'utf-8'));
-        writeSummitData(data);
-        sendJson(200, { success: true, message: 'Plantilla aplicada con éxito', data });
+        if (preset === 'tech' || preset === 'default') presetPath = path.join(__dirname, 'data', 'summit-data.backup.json');
+        const data = leerJsonArchivo(presetPath);
+        if (!data) return sendJson(404, { error: 'Plantilla no encontrada' });
+        const v = ev.guardarVersion({
+          eventoId: eventoDeLaPeticion(), contenido: data, nota: `Plantilla aplicada: ${preset || 'esg'}`,
+          usuarioId: currentUser.id, forzar: true
+        });
+        sendJson(200, { success: true, message: 'Plantilla aplicada con éxito', data, version: v.numero });
       })
-      .catch(err => sendJson(400, { error: err.message }));
+      .catch(fallo);
     return;
   }
 
+  // Vuelve a la versión anterior del evento (la actual queda en el historial)
   if (pathname === '/api/reset' && req.method === 'POST') {
     if (!requireAdmin()) return;
-    if (!fs.existsSync(BACKUP_FILE)) return sendJson(404, { error: 'No existe archivo de respaldo' });
-    fs.copyFileSync(BACKUP_FILE, DATA_FILE);
-    return sendJson(200, { success: true, message: 'Datos restaurados desde respaldo' });
+    try {
+      const v = ev.restaurarAnterior({ eventoId: eventoDeLaPeticion(), usuarioId: currentUser.id });
+      return sendJson(200, { success: true, message: `Se restauró la versión anterior (ahora versión ${v.numero})`, version: v.numero });
+    } catch (err) {
+      return fallo(err);
+    }
   }
 
+  // ZIP con las imágenes del evento que se está editando
   if (pathname === '/api/download-assets-zip' && req.method === 'GET') {
-    // Se genera fuera de /public para que nunca quede accesible sin sesión
-    const zipPath = path.join(os.tmpdir(), `summit-assets-${Date.now()}-${process.pid}.zip`);
-    execFile('zip', ['-r', '-q', zipPath, '.', '-x', '.DS_Store'], { cwd: UPLOADS_DIR }, (err) => {
+    let archivos;
+    try {
+      archivos = ev.archivosDelEvento(eventoDeLaPeticion());
+    } catch (err) {
+      return fallo(err);
+    }
+    if (!archivos.length) return sendJson(404, { error: 'Este evento todavía no tiene imágenes' });
+
+    // Todo se genera en la carpeta temporal del sistema, nunca dentro de /public
+    const carpeta = fs.mkdtempSync(path.join(os.tmpdir(), 'summit-assets-'));
+    const zipPath = `${carpeta}.zip`;
+    const limpiar = () => {
+      fs.rm(carpeta, { recursive: true, force: true }, () => {});
+      fs.unlink(zipPath, () => {});
+    };
+    for (const a of archivos) fs.copyFileSync(a.ruta, path.join(carpeta, a.nombre));
+
+    execFile('zip', ['-r', '-q', zipPath, '.', '-x', '.DS_Store'], { cwd: carpeta }, (err) => {
       if (err || !fs.existsSync(zipPath)) {
         console.error('Error generating ZIP:', err);
+        limpiar();
         return sendJson(500, { error: 'No se pudo generar el archivo ZIP de imágenes' });
       }
       res.writeHead(200, {
@@ -456,7 +595,24 @@ const server = http.createServer((req, res) => {
       });
       const stream = fs.createReadStream(zipPath);
       stream.pipe(res);
-      stream.on('close', () => fs.unlink(zipPath, () => {}));
+      stream.on('close', limpiar);
+    });
+    return;
+  }
+
+  // ==========================================
+  // TABLERO DE EVENTOS, PUBLICACIÓN, TAREAS Y PAPELERA
+  // ==========================================
+  if (esRutaEventos(pathname)) {
+    manejarApiEventos({
+      req,
+      pathname,
+      searchParams: parsedUrl.searchParams,
+      usuario: currentUser,
+      leerJson,
+      enviar: sendJson,
+      listarEquipo: () => getUsersList().map(u => ({ id: u.id, nombre: u.name, username: u.username, rol: u.role })),
+      cargarPlantilla
     });
     return;
   }
@@ -473,19 +629,61 @@ const server = http.createServer((req, res) => {
     return res.end('User-agent: *\nDisallow:\n');
   }
 
+  // Vista previa (solo con sesión): lo último guardado o ?version=N, sin publicar
+  const mPrevia = pathname.match(/^\/vista-previa(?:\/([^/]+))?\/?$/);
+  if (mPrevia && esLectura) {
+    try {
+      const eventoId = mPrevia[1] ? ev.resolverEventoId(mPrevia[1], { estricto: true }) : eventoDeLaPeticion();
+      const { evento, numero } = ev.obtenerContenido(eventoId, parsedUrl.searchParams.get('version'));
+      const estado = numero === evento.versionPublicada
+        ? 'es la versión publicada'
+        : evento.versionPublicada ? `la publicada es la ${evento.versionPublicada}` : 'el evento aún no está publicado';
+      const html = htmlLanding({
+        publicDir: PUBLIC_DIR, eventoId, modo: 'preview', version: numero,
+        aviso: `Vista previa de “${evento.nombre}”, versión ${numero} (${estado})`
+      });
+      return sendHtml(200, html);
+    } catch (err) {
+      const status = err.status || 500;
+      if (status >= 500) console.error('[vista-previa]', err);
+      return sendHtml(status, `<!doctype html><meta name="robots" content="noindex"><meta charset="utf-8"><p style="font:16px system-ui;padding:24px">${escapeHtml(status >= 500 ? 'No se pudo generar la vista previa' : err.message)}. <a href="/eventos">Volver a Eventos</a></p>`);
+    }
+  }
+
   if (pathname === '/admin' || pathname === '/admin/' || pathname === '/admin.html') {
     pathname = '/admin.html';
   }
 
+  if (pathname === '/eventos' || pathname === '/eventos/' || pathname === '/eventos.html') {
+    pathname = '/eventos.html';
+  }
+
   if (pathname === '/login' || pathname === '/login/' || pathname === '/login.html') {
     if (currentUser) {
-      res.writeHead(302, { Location: '/admin', 'Cache-Control': 'no-store' });
+      const destino = destinoSeguro(parsedUrl.searchParams.get('next'), '/eventos');
+      res.writeHead(302, { Location: destino, 'Cache-Control': 'no-store' });
       return res.end();
     }
     pathname = '/login.html';
   }
 
-  if (pathname === '/') pathname = '/index.html';
+  // Imágenes: primero las subidas (DATA_DIR/uploads), después las del repositorio (public/uploads)
+  if (pathname.startsWith('/uploads/')) {
+    const nombre = pathname.slice('/uploads/'.length);
+    const candidato = path.resolve(UPLOADS_DIR, nombre);
+    if (candidato.startsWith(UPLOADS_DIR + path.sep) && !path.basename(candidato).startsWith('.')) {
+      let st = null;
+      try { st = fs.statSync(candidato); } catch {}
+      if (st && st.isFile()) {
+        const ext = path.extname(candidato).toLowerCase();
+        res.writeHead(200, {
+          'Content-Type': MIME_TYPES[ext] || 'application/octet-stream',
+          'Cache-Control': 'public, max-age=31536000, immutable'
+        });
+        return fs.createReadStream(candidato).pipe(res);
+      }
+    }
+  }
 
   // Archivos estáticos con verificación estricta de contención
   const filePath = path.resolve(PUBLIC_DIR, '.' + path.posix.normalize('/' + pathname));
@@ -513,13 +711,21 @@ const server = http.createServer((req, res) => {
   res.end(`<!doctype html><meta name="robots" content="noindex"><h1>404</h1><p>Ruta no encontrada: ${escapeHtml(pathname)}</p>`);
 });
 
+// La papelera se vacía sola: lo que lleva más de DIAS_PAPELERA días se elimina
+const vaciarPapelera = () => {
+  try { ev.purgarPapelera(); } catch (err) { console.error('[papelera]', err.message); }
+};
+vaciarPapelera();
+setInterval(vaciarPapelera, 24 * 60 * 60 * 1000).unref();
+
 server.listen(PORT, '0.0.0.0', () => {
   console.log('===============================================');
   console.log('🚀 CMS Summit iniciado');
-  console.log('🔒 Acceso restringido a usuarios autenticados');
-  console.log('🚫 noindex activo (X-Robots-Tag en todas las respuestas)');
-  console.log(`🔑 Login:  http://localhost:${PORT}/login`);
-  console.log(`⚙️  Panel:  http://localhost:${PORT}/admin`);
-  console.log(`🌐 Vista previa landing: ${PUBLIC_LANDING ? 'pública' : 'privada (requiere sesión)'}`);
+  console.log(`💾 Datos en: ${DATA_DIR}`);
+  console.log('🌐 Landings publicadas: públicas en / y /<ruta>');
+  console.log(`🔎 Indexación en buscadores: ${PERMITIR_INDEXACION ? 'permitida en landings publicadas' : 'bloqueada (noindex)'}`);
+  console.log(`🔑 Login:   http://localhost:${PORT}/login`);
+  console.log(`🗂️  Eventos: http://localhost:${PORT}/eventos`);
+  console.log(`⚙️  Editor:  http://localhost:${PORT}/admin`);
   console.log('===============================================');
 });

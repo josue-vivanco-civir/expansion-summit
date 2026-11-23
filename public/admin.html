@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow, noarchive">
   <title>CMS Summit Panel de Control</title>
-  <link rel="stylesheet" href="/css/admin.css">
+  <!-- Evento activo, versiones, conflictos y publicación. Debe cargarse antes que /js/admin.js -->
+  <script src="js/evento-contexto.js"></script>
+  <link rel="stylesheet" href="css/admin.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700&family=Plus+Jakarta+Sans:wght@600;700&display=swap" rel="stylesheet">
@@ -57,6 +59,19 @@
       </div>
 
       <nav class="sidebar-nav">
+        <div class="nav-section-label">Evento</div>
+        <div id="evento-actual" style="padding:10px 12px; margin-bottom:0.5rem; background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.25); border-radius:8px;">
+          <div data-evento-nombre style="font-size:0.85rem; font-weight:700; color:#ffffff; line-height:1.3;">Cargando…</div>
+          <div data-evento-version style="font-size:0.72rem; color:#94a3b8; margin-top:2px;"></div>
+          <div data-evento-publicacion style="font-size:0.72rem; margin-top:4px; line-height:1.35;"></div>
+          <button type="button" data-evento-publicar class="admin-btn admin-btn-primary admin-btn-sm" style="width:100%; margin-top:8px; justify-content:center;" hidden>
+            <span>🚀 Publicar</span>
+          </button>
+          <a href="eventos" class="admin-btn admin-btn-secondary admin-btn-sm" style="width:100%; margin-top:6px; justify-content:center; text-decoration:none;">
+            <span>🗂️ Todos los eventos</span>
+          </a>
+        </div>
+
         <div class="nav-section-label">Configuración Global</div>
         <button class="sidebar-tab-btn active" data-target="panel-appearance">
           <span class="tab-icon">🎨</span>
@@ -167,7 +182,7 @@
         </div>
         <div class="topbar-actions">
           <!-- User status pill in topbar -->
-          <div class="user-topbar-pill" id="topbar-user-pill" style="display:flex; align-items:center; gap:8px; background:#1e293b; padding:4px 12px; border-radius:6px; border:1px solid #334155; font-size:0.8rem;">
+          <div class="user-topbar-pill" id="topbar-user-pill" style="display:flex; align-items:center; gap:8px; background:#1e293b; padding:4px 12px; border-radius:6px; border:1px solid #334155; font-size:0.875rem;">
             <span id="topbar-user-role-badge" class="user-role-badge role-badge-admin">ADMIN</span>
             <span id="topbar-user-name" style="color:#e2e8f0; font-weight:600;">...</span>
           </div>
@@ -1345,7 +1360,7 @@
               <button class="admin-btn admin-btn-secondary" onclick="previewWordPressHtmlDirect()">
                 <span>👁️ Previsualizar en Pestaña Nueva</span>
               </button>
-              <a href="/api/download-assets-zip" class="admin-btn admin-btn-secondary" title="Descarga todas las fotos y logos del Summit en un archivo .ZIP para respaldo o migración">
+              <a href="/api/download-assets-zip" class="admin-btn admin-btn-secondary" title="Descarga las fotos y logos de este evento en un archivo .ZIP para respaldo o migración">
                 <span>📦 Descargar Imágenes en .ZIP</span>
               </a>
             </div>
@@ -1604,8 +1619,11 @@
   <!-- 7. Modal Live Preview Iframe -->
   <dialog class="preview-modal" id="live-preview-modal">
     <div class="admin-modal-header" style="height:50px;">
-      <h3>Vista Previa en Vivo de la Landing Page</h3>
-      <button class="admin-btn admin-btn-secondary admin-btn-sm" onclick="closeDialog('live-preview-modal')">&times; Cerrar</button>
+      <h3>Vista previa (lo guardado, sin publicar)</h3>
+      <div style="display:flex; gap:0.5rem;">
+        <a id="live-preview-open" href="vista-previa" target="_blank" rel="noopener" class="admin-btn admin-btn-secondary admin-btn-sm" style="text-decoration:none;">↗ Abrir en pestaña nueva</a>
+        <button class="admin-btn admin-btn-secondary admin-btn-sm" onclick="closeDialog('live-preview-modal')">&times; Cerrar</button>
+      </div>
     </div>
     <iframe id="live-preview-iframe" class="preview-iframe" src=""></iframe>
   </dialog>
@@ -1712,6 +1730,6 @@
   <div id="admin-toast" class="toast-notice">Mensaje del sistema</div>
 
   <!-- Admin Script -->
-  <script src="/js/admin.js"></script>
+  <script src="js/admin.js"></script>
 </body>
 </html>

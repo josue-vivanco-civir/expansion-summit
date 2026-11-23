@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <title>Eventos · CMS Summit</title>
+  <link rel="stylesheet" href="css/admin.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700&family=Plus+Jakarta+Sans:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Complementos del tablero; botones, campos, tarjetas y modales vienen de admin.css */
+    .tablero {
+      --t-tinta: #e2e8f0;
+      --t-suave: #94a3b8;
+      --t-tenue: #64748b;
+      --t-linea: #1e293b;
+      --t-borde: #334155;
+      --t-fila: rgba(255, 255, 255, 0.03);
+      --t-fila-hover: rgba(255, 255, 255, 0.06);
+      --t-acento: #38bdf8;
+      --t-peligro: #fca5a5;
+      --e-borrador: #64748b;
+      --e-revision: #f59e0b;
+      --e-publicado: #22c55e;
+      --e-archivado: #475569;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 500px);
+      gap: 1.5rem;
+      align-items: start;
+      color: var(--t-tinta);
+    }
+    .tablero.sin-detalle { grid-template-columns: minmax(0, 1fr); max-width: 980px; }
+    .tablero :focus-visible { outline: 2px solid var(--t-acento); outline-offset: 2px; }
+
+    a.sidebar-tab-btn { text-decoration: none; }
+    .admin-btn.peligro { color: #fca5a5; border-color: rgba(239, 68, 68, 0.3); }
+
+    /* ---------- Filas de evento ---------- */
+    .lista { display: grid; gap: 0.5rem; }
+    .fila {
+      display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.35rem 1.5rem;
+      padding: 1.1rem 1.25rem; width: 100%; text-align: left; font: inherit; color: inherit;
+      background: var(--t-fila); border: 1px solid var(--t-linea); border-left: 4px solid var(--t-borde);
+      border-radius: 8px; cursor: pointer;
+    }
+    button.fila:hover { background: var(--t-fila-hover); }
+    .fila[aria-current="true"] { border-left-color: var(--t-acento); background: rgba(56, 189, 248, 0.06); }
+    .fila .nombre { font-family: "Outfit", "Inter", sans-serif; font-size: 1.3rem; font-weight: 700; line-height: 1.2; }
+    .fila .fecha { color: var(--t-suave); font-size: 0.85rem; margin-top: 2px; }
+    .fila .meta { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 0.25rem 1.25rem; color: var(--t-suave); font-size: 0.82rem; }
+    .fila .meta strong { color: var(--t-tinta); font-weight: 600; }
+    .fila .acciones { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+
+    /* Etapas: borrador → en revisión → publicado */
+    .pista { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; width: 150px; }
+    .pista i { height: 6px; border-radius: 3px; background: var(--t-borde); }
+    .pista[data-etapa="1"] i:nth-child(-n+1) { background: var(--e-borrador); }
+    .pista[data-etapa="2"] i:nth-child(-n+2) { background: var(--e-revision); }
+    .pista[data-etapa="3"] i:nth-child(-n+3) { background: var(--e-publicado); }
+    .pista[data-etapa="0"] i { background: var(--e-archivado); }
+    .etapa { color: var(--t-suave); font-size: 0.75rem; font-weight: 600; text-align: right; margin-top: 5px; }
+
+    .vacio { padding: 2rem; border: 1px dashed var(--t-borde); border-radius: 8px; color: var(--t-suave); }
+    .vacio p { margin: 0 0 1rem; max-width: 56ch; line-height: 1.55; }
+
+    /* ---------- Detalle ---------- */
+    .detalle { position: sticky; top: 1rem; max-height: calc(100vh - 2rem); display: flex; flex-direction: column; overflow: hidden; padding: 0 !important; }
+    .detalle header { padding: 1.25rem 1.35rem 1rem; border-bottom: 1px solid var(--t-linea); }
+    .detalle h3 { font-family: "Outfit", "Inter", sans-serif; font-size: 1.35rem; font-weight: 700; margin: 0 0 0.9rem; line-height: 1.2; }
+    .detalle .controles { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    .detalle .controles .form-group { margin: 0; }
+    .detalle .botones { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+    .cerrar-detalle { display: none !important; margin-bottom: 0.75rem; }
+
+    .pestanas { display: flex; gap: 0.25rem; padding: 0 1rem; border-bottom: 1px solid var(--t-linea); overflow-x: auto; }
+    .pestanas button {
+      border: 0; background: none; font: inherit; font-size: 0.875rem; color: var(--t-suave);
+      padding: 0.75rem 0.6rem; border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap;
+    }
+    .pestanas button[aria-selected="true"] { color: var(--t-tinta); border-bottom-color: var(--t-acento); font-weight: 600; }
+    .panel { padding: 1rem 1.35rem 1.35rem; overflow-y: auto; }
+    .nota-panel { color: var(--t-suave); font-size: 0.85rem; line-height: 1.5; margin: 0 0 0.9rem; }
+
+    .nueva-tarea { display: grid; grid-template-columns: 1fr 140px; gap: 0.5rem; margin-bottom: 1rem; }
+    .nueva-tarea .titulo-tarea { grid-column: 1 / -1; }
+    .nueva-tarea .pie { grid-column: 1 / -1; display: flex; gap: 0.5rem; }
+    .nueva-tarea .pie select { flex: 1; }
+
+    .tarea { display: grid; grid-template-columns: 128px minmax(0, 1fr) auto; gap: 0.35rem 0.75rem; align-items: center; padding: 0.7rem 0; border-top: 1px solid var(--t-linea); }
+    .tarea .titulo { font-weight: 500; font-size: 0.9rem; }
+    .tarea[data-estado="listo"] .titulo { text-decoration: line-through; color: var(--t-tenue); }
+    .tarea .sub { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+    .tarea .form-select { padding-top: 4px; padding-bottom: 4px; font-size: 0.8rem; }
+    .seccion { border: 1px solid var(--t-borde); color: var(--t-suave); border-radius: 4px; padding: 1px 7px; font-size: 0.72rem; font-weight: 600; }
+
+    .renglon { display: flex; gap: 0.75rem; align-items: baseline; padding: 0.65rem 0; border-top: 1px solid var(--t-linea); font-size: 0.875rem; }
+    .renglon .crece { flex: 1; min-width: 0; }
+    .renglon .tenue { color: var(--t-suave); font-size: 0.8rem; }
+    .num { font-family: "Outfit", "Inter", sans-serif; font-weight: 700; color: var(--t-acento); min-width: 3ch; font-variant-numeric: tabular-nums; }
+    .agregar-miembro { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; }
+    .agregar-miembro select { flex: 1; }
+
+    .error-form { color: #fca5a5; font-size: 0.85rem; min-height: 1.2em; margin: 0; }
+    .aviso-tablero {
+      position: fixed; left: 50%; bottom: 1.25rem; transform: translateX(-50%); z-index: 60;
+      background: #1e293b; color: #e2e8f0; border: 1px solid #334155; border-radius: 8px;
+      padding: 0.6rem 1rem; font-size: 0.875rem; max-width: calc(100% - 2rem); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    }
+    .aviso-tablero[hidden] { display: none; }
+
+
+    /* ---------- Publicación ---------- */
+    .publicacion { margin-top: 1rem; padding: 0.9rem 1rem; border: 1px solid var(--t-borde); border-radius: 8px; background: rgba(255, 255, 255, 0.02); }
+    .publicacion h4 { margin: 0 0 0.35rem; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--t-suave); }
+    .publicacion .estado-pub { font-size: 0.875rem; margin: 0 0 0.75rem; line-height: 1.45; }
+    .publicacion .estado-pub.ok { color: #86efac; }
+    .publicacion .estado-pub.pendiente { color: #fcd34d; }
+    .url-pub { display: flex; align-items: stretch; border: 1px solid var(--t-borde); border-radius: 6px; overflow: hidden; }
+    .url-pub span { padding: 0 0.6rem; display: flex; align-items: center; background: #1e293b; color: var(--t-suave); font-size: 0.8rem; white-space: nowrap; }
+    .url-pub input { border: 0 !important; border-radius: 0 !important; flex: 1; min-width: 0; }
+    .fila-url { display: flex; gap: 0.5rem; margin-bottom: 0.6rem; }
+    .fila-url .url-pub { flex: 1; min-width: 0; }
+    .check { display: flex; gap: 0.5rem; align-items: flex-start; font-size: 0.85rem; color: var(--t-tinta); cursor: pointer; margin-bottom: 0.75rem; }
+    .check input { width: 16px; height: 16px; margin-top: 2px; accent-color: #38bdf8; }
+    .chip { display: inline-block; border-radius: 4px; padding: 0 6px; font-size: 0.72rem; font-weight: 700; }
+    .chip.raiz { background: rgba(56, 189, 248, 0.15); color: #7dd3fc; }
+    .chip.pendiente { background: rgba(245, 158, 11, 0.15); color: #fcd34d; }
+    .chip.publicada { background: rgba(34, 197, 94, 0.15); color: #86efac; }
+    .acciones-version { display: flex; gap: 0.35rem; flex-wrap: wrap; justify-content: flex-end; }
+
+    @media (max-width: 1100px) {
+      .tablero { grid-template-columns: minmax(0, 1fr); }
+      .detalle { position: fixed; inset: 0; z-index: 40; max-height: none; border-radius: 0 !important; }
+      .detalle[hidden] { display: none; }
+      .cerrar-detalle { display: inline-flex !important; }
+    }
+    @media (max-width: 560px) {
+      .pista { width: 96px; }
+      .tarea { grid-template-columns: minmax(0, 1fr) auto; }
+      .tarea .estado-tarea { grid-column: 1 / -1; }
+      .tarea .sub { grid-column: 1 / -1; }
+      .detalle .controles { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  </style>
+</head>
+<body>
+
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="logo"><svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 423.6 84" style="enable-background:new 0 0 423.6 84;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#ED1C24;}
+	.st1{fill:#FFFFFF;}
+</style>
+<rect class="st0" width="423.6" height="84"/>
+<g>
+	<g>
+		<polygon class="st1" points="16.7,68.2 53.1,68.2 53.1,60.8 25.8,60.8 25.8,45.1 44.5,45.1 44.5,37.6 25.8,37.6 25.8,28.4 
+			25.4,24 52.8,24 52.8,16.5 16.2,16.5 16.7,21.1 		"/>
+		<polygon class="st1" points="64.7,68.2 78.7,47.4 92.3,68.2 100.6,68.2 100.6,66.4 84.6,42.3 100.3,18.4 100.3,16.5 92.7,16.5 
+			79.8,36.5 66.9,16.5 58.6,16.5 58.6,18.4 73.6,41.3 56.9,66.4 56.9,68.2 		"/>
+		<g>
+			<path class="st1" d="M190.7,21.7v46.6h9.2V32.2L229,68.3h8V16.7h-9.2v35.6l-28.5-35.6 M104.8,68.3h9.2V52.8h10.2
+				c10,0,19.1-5.8,19.1-18.3c0-11.5-7.6-17.9-18.2-17.9h-20.9l0.6,5.1L104.8,68.3L104.8,68.3z M114,45.4V29.1l-0.5-5h9.7
+				c6.8,0,11.2,2.8,11.2,10.6c0,7.2-4.4,10.8-11.3,10.8L114,45.4L114,45.4z M174.5,56.8l4.6,11.5h8.4v-1.8l-20.4-50.2h-8.6
+				l-20.8,50.2v1.8h8.3l4.9-11.5L174.5,56.8L174.5,56.8z M153.7,49.4l9.1-24l8.9,24H153.7z M199.3,16.7h-9.2l0.6,5 M284.6,68.2h9
+				V16.5h-9V68.2z M368.3,68.3V32.2l29.1,36.1h8V16.7h-9.2v35.6l-28.5-35.6h-9.2l0.6,5v46.6H368.3L368.3,68.3z M260.7,15.5
+				c-10.9,0-18.8,5.3-18.8,14.6c0,9.5,10.6,13.3,16.6,15.7c5.9,2.3,10.7,4,10.7,7.9c0,4.7-4.1,7.6-9.8,7.6c-5,0-10-2.2-13.7-4.8
+				h-2.8l-0.9,6.5c4.2,3.4,11.1,5.9,17.5,5.9c10.7,0,19-6,19-15.6c0-8.7-8.6-11.9-14.5-14.3c-6.5-2.6-13-4.7-13-9.4
+				c0-4,3.7-6.2,9.8-6.2c3.9,0,8.4,1.4,10.6,3.1h2.9l0.9-7C272.2,17.6,267,15.5,260.7,15.5"/>
+			<g>
+				<path class="st1" d="M326.4,15.8c-15.5,0-27.5,11.6-27.5,26.6c0,15.1,11.7,26.7,27.5,26.7c15.6,0,27.5-11.6,27.5-26.7
+					C353.8,27.2,341.9,15.8,326.4,15.8z M326.4,61.9c-10.4,0-18.5-8.2-18.5-19.5c0-11.3,7.6-18.8,18.2-18.8
+					c10.3,0,18.7,7.6,18.7,18.8C344.7,54.4,336.1,61.9,326.4,61.9z"/>
+			</g>
+			<polygon points="346.9,16.5 329.7,33.7 340.5,33.7 357.7,16.5 			"/>
+		</g>
+	</g>
+</g>
+</svg>
+</div>
+      <div class="sidebar-brand">
+        <div class="brand-icon">⚡</div>
+        <div>
+          <div class="brand-title">Summit CMS</div>
+          <span class="brand-badge">Eventos</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Eventos</div>
+        <button type="button" class="sidebar-tab-btn active" data-vista="activos">
+          <span class="tab-icon">🗂️</span>
+          <span class="tab-label">En curso</span>
+        </button>
+        <button type="button" class="sidebar-tab-btn" data-vista="papelera">
+          <span class="tab-icon">🗑️</span>
+          <span class="tab-label">Papelera</span>
+        </button>
+
+        <div class="nav-section-label">Editor</div>
+        <a class="sidebar-tab-btn" href="/admin" id="enlace-editor">
+          <span class="tab-icon">✏️</span>
+          <span class="tab-label">Abrir el editor</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-user-card" style="padding: 10px 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+            <div style="overflow:hidden;">
+              <div id="usuario-nombre" style="font-size:0.8rem; font-weight:700; color:#fff; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">Cargando…</div>
+              <div id="usuario-username" style="font-size:0.7rem; color:#94a3b8;"></div>
+            </div>
+            <span id="usuario-rol" class="user-role-badge role-badge-editor">EDITOR</span>
+          </div>
+          <button type="button" id="btn-salir" class="admin-btn admin-btn-secondary admin-btn-sm peligro" style="width:100%; margin-top:8px; justify-content:center;">
+            <span>🚪 Salir</span>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-topbar">
+        <div class="topbar-title-wrap">
+          <h2 id="titulo-vista">Eventos en curso</h2>
+          <span class="topbar-subtitle" id="subtitulo-vista">Elige un evento para publicarlo, ver su equipo, tareas e historial de versiones</span>
+        </div>
+        <div class="topbar-actions">
+          <button type="button" class="admin-btn admin-btn-primary" id="btn-nuevo">
+            <span>➕ Nuevo evento</span>
+          </button>
+        </div>
+      </header>
+
+      <div class="admin-content">
+        <div class="tablero" id="tablero">
+          <section class="lista" id="lista" aria-live="polite"></section>
+          <aside class="card detalle" id="detalle" hidden></aside>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <dialog class="admin-modal" id="dlg-crear" style="max-width:480px;">
+    <form method="dialog" id="form-crear">
+      <div class="admin-modal-header">
+        <h3>Nuevo evento</h3>
+        <button type="button" class="admin-btn admin-btn-secondary admin-btn-sm" data-cerrar aria-label="Cerrar">&times;</button>
+      </div>
+      <div class="admin-modal-body">
+        <div class="form-group">
+          <label class="form-label" for="crear-nombre">Nombre del evento</label>
+          <input type="text" id="crear-nombre" name="nombre" class="form-input" required maxlength="120" autocomplete="off" placeholder="Expansión Summit Mujeres Poderosas 2027">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="crear-fecha">Fecha del evento</label>
+          <input type="date" id="crear-fecha" name="fecha" class="form-input">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="sel-base">Empezar desde</label>
+          <select id="sel-base" name="basadoEn" class="form-select"></select>
+          <small style="display:block; margin-top:4px; color:#94a3b8; font-size:0.75rem;">Una copia conserva textos, colores e imágenes del evento elegido; después se editan por separado.</small>
+        </div>
+        <p class="error-form" id="error-crear"></p>
+      </div>
+      <div class="admin-modal-footer">
+        <button type="button" class="admin-btn admin-btn-secondary" data-cerrar>Cancelar</button>
+        <button type="submit" class="admin-btn admin-btn-primary">Crear evento</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="aviso-tablero" id="aviso" role="status" hidden></div>
+
+  <datalist id="secciones">
+    <option value="Header y menú"><option value="Portada"><option value="Patrocinadores"><option value="Video">
+    <option value="Agenda"><option value="Ponentes"><option value="Broadcast"><option value="FAQ"><option value="Footer">
+    <option value="SEO"><option value="WordPress">
+  </datalist>
+
+<script src="js/confirmar-eliminacion.js"></script>
+<script>
+(function () {
+  const ETAPAS = {
+    borrador: { n: 1, texto: 'Borrador' },
+    en_revision: { n: 2, texto: 'En revisión' },
+    publicado: { n: 3, texto: 'Publicado' },
+    archivado: { n: 0, texto: 'Archivado' },
+  };
+  const ESTADOS_EDITABLES = { borrador: 'Borrador', en_revision: 'En revisión', archivado: 'Archivado (oculto al público)' };
+  const ESTADOS_TAREA = { pendiente: 'Pendiente', en_progreso: 'En progreso', listo: 'Lista' };
+  const B = {
+    primario: 'admin-btn admin-btn-primary',
+    normal: 'admin-btn admin-btn-secondary',
+    chico: 'admin-btn admin-btn-secondary admin-btn-sm',
+    chicoPrimario: 'admin-btn admin-btn-primary admin-btn-sm',
+    chicoPeligro: 'admin-btn admin-btn-secondary admin-btn-sm peligro',
+    peligro: 'admin-btn admin-btn-secondary peligro',
+  };
+  const HOST = location.host;
+
+  const estado = {
+    yo: null, equipo: [], eventos: [], papelera: false,
+    seleccionado: null, detalle: null, pestana: 'tareas', versiones: null,
+  };
+
+  const $ = (sel) => document.querySelector(sel);
+
+  // Crea elementos sin interpretar HTML (los textos vienen de usuarios)
+  function h(tag, props, ...hijos) {
+    const el = document.createElement(tag);
+    for (const [k, v] of Object.entries(props || {})) {
+      if (v == null || v === false) continue;
+      if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+      else if (k === 'dataset') Object.assign(el.dataset, v);
+      else if (k in el && k !== 'list') el[k] = v;
+      else el.setAttribute(k, v === true ? '' : v);
+    }
+    for (const c of hijos.flat()) if (c != null && c !== false) el.append(c);
+    return el;
+  }
+
+  async function api(metodo, url, cuerpo) {
+    const opts = { method: metodo, credentials: 'same-origin', headers: {} };
+    if (cuerpo !== undefined) {
+      opts.headers['Content-Type'] = 'application/json';
+      opts.body = JSON.stringify(cuerpo);
+    }
+    const r = await fetch(url, opts);
+    if (r.status === 401) {
+      location.href = '/login?next=' + encodeURIComponent(location.pathname + location.search);
+      throw new Error('Tu sesión terminó. Vuelve a iniciar sesión.');
+    }
+    const datos = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(datos.error || 'No se pudo completar la acción');
+    return datos;
+  }
+
+  let temporizadorAviso;
+  function avisar(texto) {
+    const el = $('#aviso');
+    el.textContent = texto;
+    el.hidden = false;
+    clearTimeout(temporizadorAviso);
+    temporizadorAviso = setTimeout(() => { el.hidden = true; }, 4000);
+  }
+  const intentar = (fn) => async (...args) => {
+    try { await fn(...args); } catch (e) { avisar(e.message); }
+  };
+
+  const rtf = new Intl.RelativeTimeFormat('es', { numeric: 'auto' });
+  function hace(fecha) {
+    if (!fecha) return '';
+    const seg = (new Date(fecha) - Date.now()) / 1000;
+    const pasos = [[60, 'second'], [3600, 'minute', 60], [86400, 'hour', 3600], [604800, 'day', 86400], [2629800, 'week', 604800]];
+    for (const [lim, unidad, div = 1] of pasos) {
+      if (Math.abs(seg) < lim) return rtf.format(Math.round(seg / div), unidad);
+    }
+    return new Date(fecha).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+  function fechaEvento(f) {
+    if (!f) return 'Sin fecha';
+    return new Date(f + 'T12:00:00').toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  }
+  const nombreDe = (id) => (estado.equipo.find((u) => u.id === id) || {}).nombre || 'alguien';
+  const previa = (id, numero) => `/vista-previa/${id}${numero ? `?version=${numero}` : ''}`;
+
+  // ---------- Carga ----------
+  async function cargarEventos() {
+    estado.eventos = await api('GET', '/api/eventos' + (estado.papelera ? '?papelera=1' : ''));
+    pintarLista();
+  }
+
+  async function cargarDetalle(id) {
+    estado.detalle = await api('GET', `/api/eventos/${id}`);
+    if (estado.pestana === 'versiones') estado.versiones = await api('GET', `/api/eventos/${id}/versiones`);
+    pintarDetalle();
+  }
+
+  async function refrescar() {
+    await cargarEventos();
+    if (estado.seleccionado && !estado.papelera) await cargarDetalle(estado.seleccionado);
+  }
+
+  // ---------- Lista ----------
+  function pistaEtapas(ev) {
+    const etapa = ETAPAS[ev.etapa] || ETAPAS.borrador;
+    return h('div', {},
+      h('div', { className: 'pista', dataset: { etapa: String(etapa.n) }, 'aria-hidden': 'true' }, h('i'), h('i'), h('i')),
+      h('div', { className: 'etapa' }, etapa.texto));
+  }
+
+  function pintarLista() {
+    const lista = $('#lista');
+    lista.replaceChildren();
+    $('#tablero').classList.toggle('sin-detalle', estado.papelera || !estado.seleccionado);
+
+    if (!estado.eventos.length) {
+      lista.append(h('div', { className: 'vacio' }, estado.papelera
+        ? h('p', {}, 'La papelera está vacía. Los eventos que muevas aquí se pueden restaurar durante 30 días.')
+        : [h('p', {}, 'Todavía no hay eventos. Crea el primero desde la plantilla base o como copia de otro.'),
+           h('button', { type: 'button', className: B.primario, onclick: abrirCrear }, h('span', {}, '➕ Nuevo evento'))]));
+      return;
+    }
+
+    for (const ev of estado.eventos) {
+      const meta = h('div', { className: 'meta' },
+        ev.urlsPublicas.length
+          ? h('span', {}, '🌐 ', h('strong', {}, ev.urlsPublicas.map((u) => HOST + u).join('  ·  ')))
+          : h('span', {}, `Sin publicar · ${HOST}/${ev.ruta}`),
+        ev.esPrincipal && h('span', { className: 'chip raiz' }, 'RAÍZ DEL DOMINIO'),
+        ev.cambiosSinPublicar && ev.versionPublicada && h('span', { className: 'chip pendiente' }, 'CAMBIOS SIN PUBLICAR'),
+        ev.versionActual
+          ? h('span', {}, 'Versión ', h('strong', {}, String(ev.versionActual)), `, guardada por ${ev.ultimoEditor || 'alguien'} ${hace(ev.ultimaEdicion)}`)
+          : h('span', {}, 'Sin contenido guardado'),
+        h('span', {}, h('strong', {}, String(ev.tareasPendientes)), ev.tareasPendientes === 1 ? ' tarea pendiente' : ' tareas pendientes'));
+
+      if (estado.papelera) {
+        lista.append(h('div', { className: 'fila', role: 'group', 'aria-label': ev.nombre },
+          h('div', {}, h('div', { className: 'nombre' }, ev.nombre), h('div', { className: 'fecha' }, `En la papelera desde ${hace(ev.eliminadoEn)}`)),
+          pistaEtapas(ev),
+          h('div', { className: 'acciones' },
+            h('button', { type: 'button', className: B.chico, onclick: intentar(async () => {
+              const r = await api('POST', `/api/eventos/${ev.id}/restaurar`);
+              avisar(`“${ev.nombre}” volvió a Eventos en curso (URL: /${r.ruta})`);
+              await cargarEventos();
+            }) }, h('span', {}, '↩️ Restaurar')),
+            estado.yo?.role === 'admin' && h('button', { type: 'button', className: B.chicoPeligro, onclick: intentar(async () => {
+              if (await window.confirmarEliminacion({ eventoId: ev.id, definitivo: true })) {
+                avisar(`“${ev.nombre}” se eliminó definitivamente`);
+                await cargarEventos();
+              }
+            }) }, h('span', {}, 'Eliminar definitivamente')))));
+        continue;
+      }
+
+      lista.append(h('button', {
+        type: 'button', className: 'fila',
+        'aria-current': ev.id === estado.seleccionado ? 'true' : 'false',
+        onclick: () => seleccionar(ev.id),
+      },
+        h('div', {}, h('div', { className: 'nombre' }, ev.nombre), h('div', { className: 'fecha' }, fechaEvento(ev.fechaEvento))),
+        pistaEtapas(ev),
+        meta));
+    }
+  }
+
+  const seleccionar = intentar(async (id) => {
+    estado.seleccionado = id;
+    estado.versiones = null;
+    history.replaceState(null, '', `/eventos?evento=${id}`);
+    $('#enlace-editor').href = `/admin?evento=${id}`;
+    pintarLista();
+    await cargarDetalle(id);
+  });
+
+  // ---------- Detalle ----------
+  function campo(etiqueta, control) {
+    const id = 'c-' + Math.random().toString(36).slice(2, 8);
+    control.id = id;
+    return h('div', { className: 'form-group' }, h('label', { className: 'form-label', htmlFor: id }, etiqueta), control);
+  }
+
+  async function publicarVersion(d, numero) {
+    const urls = [`${HOST}/${d.ruta}`, ...(d.esPrincipal ? [`${HOST}/`] : [])];
+    if (!confirm(`Se publicará la versión ${numero} de “${d.nombre}” en:\n${urls.join('\n')}\n\nCualquier persona con el enlace la verá. ¿Publicar?`)) return;
+    await api('POST', `/api/eventos/${d.id}/publicar`, { numero });
+    avisar(`Versión ${numero} publicada en ${urls.join(' y ')}`);
+    if (estado.pestana === 'versiones') estado.versiones = await api('GET', `/api/eventos/${d.id}/versiones`);
+    await refrescar();
+  }
+
+  function bloquePublicacion(d) {
+    const caja = h('div', { className: 'publicacion' }, h('h4', {}, 'Publicación'));
+
+    let texto;
+    let clase = 'pendiente';
+    if (d.estado === 'archivado') {
+      texto = 'Archivado: no se muestra en ninguna URL pública. Cambia el estado para volver a publicarlo.';
+    } else if (d.versionPublicada) {
+      texto = `En línea la versión ${d.versionPublicada}, publicada ${hace(d.publicadoEn)}${d.publicadoPor ? ` por ${d.publicadoPor}` : ''}.`;
+      if (d.cambiosSinPublicar) texto += ` Hay cambios guardados sin publicar (versión ${d.versionActual}).`;
+      else clase = 'ok';
+    } else {
+      texto = d.versionActual ? 'Sin publicar: por ahora solo se ve en la vista previa.' : 'Aún no tiene contenido guardado.';
+    }
+    caja.append(h('p', { className: `estado-pub ${clase}` }, texto));
+
+    const ruta = h('input', { type: 'text', className: 'form-input', value: d.ruta, maxLength: 60, spellcheck: false, 'aria-label': 'Ruta de la URL pública' });
+    caja.append(h('div', { className: 'fila-url' },
+      h('div', { className: 'url-pub' }, h('span', {}, `${HOST}/`), ruta),
+      h('button', { type: 'button', className: B.chico, onclick: intentar(async () => {
+        const valor = ruta.value.trim().toLowerCase().replace(/^\/+|\/+$/g, '');
+        if (valor === d.ruta) return;
+        if (d.versionPublicada && !confirm(`La dirección ${HOST}/${d.ruta} dejará de funcionar y el evento pasará a ${HOST}/${valor}. ¿Cambiar la URL?`)) return;
+        await api('PATCH', `/api/eventos/${d.id}`, { ruta: valor });
+        avisar(`URL cambiada a ${HOST}/${valor}`);
+        await refrescar();
+      }) }, h('span', {}, 'Guardar URL'))));
+
+    const principal = h('input', { type: 'checkbox', checked: d.esPrincipal, onchange: intentar(async (e) => {
+      const activar = e.target.checked;
+      const actual = estado.eventos.find((x) => x.esPrincipal && x.id !== d.id);
+      if (activar && actual && !confirm(`La raíz ${HOST}/ ahora muestra “${actual.nombre}”. ¿Cambiarla a “${d.nombre}”? “${actual.nombre}” seguirá disponible en ${HOST}/${actual.ruta}.`)) {
+        e.target.checked = false;
+        return;
+      }
+      await api('PATCH', `/api/eventos/${d.id}`, { esPrincipal: activar });
+      avisar(activar ? `“${d.nombre}” es ahora la landing de ${HOST}/` : `${HOST}/ ya no muestra “${d.nombre}”`);
+      await refrescar();
+    }) });
+    caja.append(h('label', { className: 'check' }, principal,
+      h('span', {}, `Mostrar también en la raíz del dominio (${HOST}/)`)));
+
+    const pendiente = d.versionActual && d.versionActual !== d.versionPublicada && d.estado !== 'archivado';
+    caja.append(h('div', { className: 'botones', style: 'margin-top:0' },
+      pendiente && h('button', { type: 'button', className: B.chicoPrimario, onclick: intentar(() => publicarVersion(d, d.versionActual)) },
+        h('span', {}, `🚀 Publicar versión ${d.versionActual}`)),
+      d.versionActual && h('a', { className: B.chico, href: previa(d.id), target: '_blank', rel: 'noopener' }, h('span', {}, '👁️ Vista previa')),
+      d.urlsPublicas.length > 0 && h('a', { className: B.chico, href: d.urlsPublicas[d.urlsPublicas.length - 1], target: '_blank', rel: 'noopener' }, h('span', {}, '🌐 Abrir publicada')),
+      d.versionPublicada && h('button', { type: 'button', className: B.chicoPeligro, onclick: intentar(async () => {
+        if (!confirm(`“${d.nombre}” dejará de verse en ${d.urlsPublicas.map((u) => HOST + u).join(' y ') || 'su URL'}. Seguirás pudiendo editarlo y verlo en vista previa. ¿Despublicar?`)) return;
+        await api('POST', `/api/eventos/${d.id}/despublicar`);
+        avisar(`“${d.nombre}” ya no está publicado`);
+        await refrescar();
+      }) }, h('span', {}, 'Despublicar'))));
+    return caja;
+  }
+
+  function pintarDetalle() {
+    const d = estado.detalle;
+    const panel = $('#detalle');
+    if (!d || estado.papelera) { panel.hidden = true; return; }
+    panel.hidden = false;
+
+    const selEstado = h('select', { className: 'form-select', onchange: intentar(async (e) => {
+      await api('PATCH', `/api/eventos/${d.id}`, { estado: e.target.value });
+      avisar(`Estado cambiado a ${ESTADOS_EDITABLES[e.target.value]}`);
+      await refrescar();
+    }) }, Object.entries(ESTADOS_EDITABLES).map(([k, v]) => h('option', { value: k, selected: k === d.estado }, v)));
+
+    const inFecha = h('input', { type: 'date', className: 'form-input', value: d.fechaEvento || '', onchange: intentar(async (e) => {
+      await api('PATCH', `/api/eventos/${d.id}`, { fechaEvento: e.target.value || null });
+      await refrescar();
+    }) });
+
+    const cabecera = h('header', {},
+      h('button', { type: 'button', className: B.chico + ' cerrar-detalle', onclick: () => { estado.seleccionado = null; panel.hidden = true; pintarLista(); } }, h('span', {}, '← Volver a la lista')),
+      h('h3', {}, d.nombre),
+      h('div', { className: 'controles' }, campo('Estado de trabajo', selEstado), campo('Fecha del evento', inFecha)),
+      bloquePublicacion(d),
+      h('div', { className: 'botones' },
+        h('a', { className: B.primario, href: `/admin?evento=${d.id}` }, h('span', {}, '✏️ Abrir en el editor')),
+        h('button', { type: 'button', className: B.peligro, onclick: intentar(async () => {
+          if (await window.confirmarEliminacion({ eventoId: d.id })) {
+            avisar(`“${d.nombre}” se movió a la papelera`);
+            estado.seleccionado = null;
+            estado.detalle = null;
+            history.replaceState(null, '', '/eventos');
+            $('#enlace-editor').href = '/admin';
+            panel.hidden = true;
+            await cargarEventos();
+          }
+        }) }, h('span', {}, '🗑️ Mover a la papelera'))));
+
+    const pendientes = d.tareas.filter((t) => t.estado !== 'listo').length;
+    const pestanas = [['tareas', `Tareas (${pendientes})`], ['versiones', 'Versiones'], ['equipo', `Equipo (${d.miembros.length})`], ['actividad', 'Actividad']];
+    const barra = h('div', { className: 'pestanas', role: 'tablist' },
+      pestanas.map(([clave, texto]) => h('button', {
+        type: 'button', role: 'tab', 'aria-selected': String(estado.pestana === clave),
+        onclick: intentar(async () => {
+          estado.pestana = clave;
+          if (clave === 'versiones') estado.versiones = await api('GET', `/api/eventos/${d.id}/versiones`);
+          pintarDetalle();
+        }),
+      }, texto)));
+
+    const cuerpo = h('div', { className: 'panel', role: 'tabpanel' });
+    ({ tareas: panelTareas, versiones: panelVersiones, equipo: panelEquipo, actividad: panelActividad })[estado.pestana](cuerpo, d);
+
+    panel.replaceChildren(cabecera, barra, cuerpo);
+  }
+
+  function selectorPersona(valor, onchange, etiqueta = 'Asignar a') {
+    return h('select', { className: 'form-select', onchange, 'aria-label': etiqueta },
+      h('option', { value: '' }, 'Sin asignar'),
+      estado.equipo.map((u) => h('option', { value: u.id, selected: u.id === valor }, u.nombre)));
+  }
+
+  function panelTareas(cuerpo, d) {
+    const titulo = h('input', { type: 'text', className: 'form-input titulo-tarea', name: 'titulo', placeholder: 'Qué hay que hacer', maxLength: 200, required: true, 'aria-label': 'Tarea' });
+    const seccion = h('input', { type: 'text', className: 'form-input', name: 'seccion', placeholder: 'Sección', list: 'secciones', maxLength: 60, 'aria-label': 'Sección' });
+    const persona = selectorPersona('', null);
+    cuerpo.append(h('form', { className: 'nueva-tarea', onsubmit: intentar(async (e) => {
+      e.preventDefault();
+      await api('POST', `/api/eventos/${d.id}/tareas`, { titulo: titulo.value, seccion: seccion.value, asignadoA: persona.value || null });
+      await refrescar();
+      $('#detalle input[name="titulo"]')?.focus();
+    }) }, titulo, seccion, h('div', { className: 'pie' }, persona, h('button', { type: 'submit', className: B.normal }, h('span', {}, 'Agregar tarea')))));
+
+    if (!d.tareas.length) {
+      cuerpo.append(h('p', { className: 'nota-panel' }, 'Reparte el trabajo por sección del editor: quién arma la agenda, quién sube a los ponentes, quién revisa el SEO.'));
+      return;
+    }
+    const orden = { en_progreso: 0, pendiente: 1, listo: 2 };
+    for (const t of [...d.tareas].sort((a, b) => orden[a.estado] - orden[b.estado])) {
+      cuerpo.append(h('div', { className: 'tarea', dataset: { estado: t.estado } },
+        h('select', { className: 'form-select estado-tarea', 'aria-label': 'Estado de la tarea', onchange: intentar(async (e) => {
+          await api('PATCH', `/api/tareas/${t.id}`, { estado: e.target.value });
+          await refrescar();
+        }) }, Object.entries(ESTADOS_TAREA).map(([k, v]) => h('option', { value: k, selected: k === t.estado }, v))),
+        h('div', { className: 'titulo' }, t.titulo),
+        h('button', { type: 'button', className: B.chico, 'aria-label': `Quitar la tarea ${t.titulo}`, onclick: intentar(async () => {
+          await api('DELETE', `/api/tareas/${t.id}`);
+          await refrescar();
+        }) }, h('span', {}, 'Quitar')),
+        h('div', { className: 'sub' },
+          t.seccion && h('span', { className: 'seccion' }, t.seccion),
+          selectorPersona(t.asignadoA, intentar(async (e) => {
+            await api('PATCH', `/api/tareas/${t.id}`, { asignadoA: e.target.value || null });
+            await refrescar();
+          })))));
+    }
+  }
+
+  function panelVersiones(cuerpo, d) {
+    cuerpo.append(h('p', { className: 'nota-panel' }, 'Cada “Guardar cambios” del editor crea una versión. Puedes verla en vista previa, publicarla o restaurarla; ninguna se pierde.'));
+    for (const v of estado.versiones || []) {
+      cuerpo.append(h('div', { className: 'renglon' },
+        h('span', { className: 'num' }, `v${v.numero}`),
+        h('div', { className: 'crece' },
+          h('div', {}, v.nota || 'Guardado desde el editor', ' ',
+            v.publicada && h('span', { className: 'chip publicada' }, 'PUBLICADA'), ' ',
+            v.actual && h('span', { className: 'chip raiz' }, 'ACTUAL')),
+          h('div', { className: 'tenue' }, `${v.autor || 'Sin autor'}, ${hace(v.creadoEn)}`)),
+        h('div', { className: 'acciones-version' },
+          h('a', { className: B.chico, href: previa(d.id, v.numero), target: '_blank', rel: 'noopener' }, h('span', {}, 'Ver')),
+          !v.publicada && d.estado !== 'archivado' && h('button', { type: 'button', className: B.chico, onclick: intentar(() => publicarVersion(d, v.numero)) }, h('span', {}, 'Publicar')),
+          !v.actual && h('button', { type: 'button', className: B.chico, onclick: intentar(async () => {
+            if (!confirm(`¿Restaurar la versión ${v.numero} en el editor? Se creará una versión nueva con ese contenido; lo publicado no cambia hasta que publiques.`)) return;
+            const r = await api('POST', `/api/eventos/${d.id}/versiones/${v.numero}/restaurar`);
+            estado.versiones = await api('GET', `/api/eventos/${d.id}/versiones`);
+            avisar(`Versión ${v.numero} restaurada como versión ${r.numero}`);
+            await refrescar();
+          }) }, h('span', {}, 'Restaurar')))));
+    }
+  }
+
+  function panelEquipo(cuerpo, d) {
+    const ids = new Set(d.miembros.map((m) => m.usuarioId));
+    const disponibles = estado.equipo.filter((u) => !ids.has(u.id));
+    if (disponibles.length) {
+      const sel = h('select', { className: 'form-select', 'aria-label': 'Persona' },
+        disponibles.map((u) => h('option', { value: u.id }, `${u.nombre} (@${u.username})`)));
+      cuerpo.append(h('div', { className: 'agregar-miembro' }, sel,
+        h('button', { type: 'button', className: B.normal, onclick: intentar(async () => {
+          await api('POST', `/api/eventos/${d.id}/miembros`, { usuarioId: sel.value });
+          await refrescar();
+        }) }, h('span', {}, 'Agregar al equipo'))));
+    }
+    if (!d.miembros.length) cuerpo.append(h('p', { className: 'nota-panel' }, 'Nadie está asignado a este evento todavía.'));
+    for (const m of d.miembros) {
+      cuerpo.append(h('div', { className: 'renglon' },
+        h('div', { className: 'crece' }, h('div', {}, m.nombre || 'Usuario eliminado'), h('div', { className: 'tenue' }, m.rol === 'responsable' ? 'Responsable' : 'Editor')),
+        h('button', { type: 'button', className: B.chico, onclick: intentar(async () => {
+          await api('DELETE', `/api/eventos/${d.id}/miembros/${encodeURIComponent(m.usuarioId)}`);
+          await refrescar();
+        }) }, h('span', {}, 'Quitar'))));
+    }
+  }
+
+  function describir(a) {
+    const d = a.detalle || {};
+    switch (a.accion) {
+      case 'creo_evento': return 'creó el evento';
+      case 'guardo_version': return `guardó la versión ${d.numero}${d.nota ? `: ${d.nota}` : ''}`;
+      case 'publico_version': return `publicó la versión ${d.numero}`;
+      case 'despublico': return 'despublicó el evento';
+      case 'actualizo_evento':
+        if (d.ruta) return `cambió la URL a /${d.ruta}`;
+        if (d.esPrincipal === true) return 'lo puso en la raíz del dominio';
+        if (d.esPrincipal === false) return 'lo quitó de la raíz del dominio';
+        if (d.estado) return `cambió el estado a ${ESTADOS_EDITABLES[d.estado] || d.estado}`;
+        return 'actualizó los datos del evento';
+      case 'creo_tarea': return `creó la tarea “${d.titulo}”`;
+      case 'completo_tarea': return `terminó “${d.titulo}”`;
+      case 'agrego_miembro': return `agregó a ${nombreDe(d.usuarioId)} al equipo`;
+      case 'quito_miembro': return `quitó a ${nombreDe(d.usuarioId)} del equipo`;
+      case 'movio_a_papelera': return 'movió el evento a la papelera';
+      case 'restauro_de_papelera': return 'restauró el evento de la papelera';
+      default: return a.accion;
+    }
+  }
+
+  function panelActividad(cuerpo, d) {
+    if (!d.actividad.length) { cuerpo.append(h('p', { className: 'nota-panel' }, 'Sin actividad todavía.')); return; }
+    for (const a of d.actividad) {
+      cuerpo.append(h('div', { className: 'renglon' },
+        h('div', { className: 'crece' }, h('strong', {}, a.usuarioNombre || 'Sistema'), ' ', describir(a)),
+        h('span', { className: 'tenue' }, hace(a.creadoEn))));
+    }
+  }
+
+  // ---------- Crear ----------
+  function abrirCrear() {
+    $('#sel-base').replaceChildren(
+      h('option', { value: '' }, 'Plantilla base'),
+      ...estado.eventos.map((ev) => h('option', { value: ev.id }, `Copia de “${ev.nombre}”`)));
+    $('#form-crear').reset();
+    $('#error-crear').textContent = '';
+    $('#dlg-crear').showModal();
+    $('#crear-nombre').focus();
+  }
+
+  $('#form-crear').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    const boton = e.target.querySelector('[type="submit"]');
+    boton.disabled = true;
+    try {
+      const nuevo = await api('POST', '/api/eventos', {
+        nombre: f.get('nombre'), fechaEvento: f.get('fecha') || null, basadoEn: f.get('basadoEn') || null,
+      });
+      $('#dlg-crear').close();
+      avisar(`“${nuevo.nombre}” creado. Su URL será ${HOST}/${nuevo.ruta} cuando lo publiques.`);
+      await cargarEventos();
+      await seleccionar(nuevo.id);
+    } catch (err) {
+      $('#error-crear').textContent = err.message;
+    } finally {
+      boton.disabled = false;
+    }
+  });
+  for (const b of document.querySelectorAll('[data-cerrar]')) b.addEventListener('click', () => $('#dlg-crear').close());
+
+  $('#btn-nuevo').addEventListener('click', intentar(async () => {
+    if (estado.papelera) {
+      cambiarVista('activos');
+      await cargarEventos();
+    }
+    abrirCrear();
+  }));
+
+  // ---------- Vistas ----------
+  function cambiarVista(vista) {
+    estado.papelera = vista === 'papelera';
+    for (const b of document.querySelectorAll('[data-vista]')) b.classList.toggle('active', b.dataset.vista === vista);
+    $('#titulo-vista').textContent = estado.papelera ? 'Papelera' : 'Eventos en curso';
+    $('#subtitulo-vista').textContent = estado.papelera
+      ? 'Los eventos se pueden restaurar durante 30 días; después se eliminan solos'
+      : 'Elige un evento para publicarlo, ver su equipo, tareas e historial de versiones';
+    if (estado.papelera) $('#detalle').hidden = true;
+  }
+  for (const b of document.querySelectorAll('[data-vista]')) {
+    b.addEventListener('click', intentar(async () => {
+      cambiarVista(b.dataset.vista);
+      await cargarEventos();
+      if (!estado.papelera && estado.seleccionado) await cargarDetalle(estado.seleccionado);
+    }));
+  }
+
+  $('#btn-salir').addEventListener('click', async () => {
+    await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' }).catch(() => {});
+    location.href = '/login';
+  });
+
+  // ---------- Inicio ----------
+  intentar(async () => {
+    const [yo, equipo] = await Promise.all([api('GET', '/api/auth/me'), api('GET', '/api/equipo')]);
+    if (!yo.authenticated) { location.href = '/login?next=' + encodeURIComponent('/eventos'); return; }
+    estado.yo = yo.user;
+    estado.equipo = equipo;
+    const esAdmin = yo.user.role === 'admin';
+    $('#usuario-nombre').textContent = yo.user.name;
+    $('#usuario-username').textContent = '@' + yo.user.username;
+    $('#usuario-rol').textContent = esAdmin ? 'ADMIN' : 'EDITOR';
+    $('#usuario-rol').className = `user-role-badge ${esAdmin ? 'role-badge-admin' : 'role-badge-editor'}`;
+
+    await cargarEventos();
+    const pedido = new URLSearchParams(location.search).get('evento');
+    if (pedido && estado.eventos.some((ev) => ev.id === pedido)) await seleccionar(pedido);
+    else if (!matchMedia('(max-width: 1100px)').matches && estado.eventos[0]) await seleccionar(estado.eventos[0].id);
+  })();
+})();
+</script>
+</body>
+</html>
